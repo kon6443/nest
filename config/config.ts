@@ -6,10 +6,6 @@ const envFilePath = path.resolve(__dirname, '../../config/.env');
 // Load the .env file
 dotenv.config({path: envFilePath});
 
-/**
- * Reason why to use both config.js and .env file is to use auto complete feature.
- * And config is manipulated by registering into a container.
- */
 export const config = {
     // MySQL DB connection
     MYSQL: {
