@@ -1,6 +1,4 @@
-// require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-import { path } from 'path';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 
 // Load the .env file
 dotenv.config();
