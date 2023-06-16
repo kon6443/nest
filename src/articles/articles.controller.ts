@@ -1,12 +1,18 @@
 import { Controller, Get, Req } from '@nestjs/common';
 import { Request } from 'express';
+import { ArticlesService } from './articles.service';
+import { GetArticlesDTO } from './dto/get-articles.dto';
 
 @Controller('articles')
 export class ArticlesController {
+
+    constructor(private readonly serviceInstance: ArticlesService) {}
+
     @Get()
-    handleGetMain(): string {
-        console.log('This is a main forum.');
-        return 'This is a main page of the forum.';
+    async handleGetMain(@Req() { query }: Request): Promise<GetArticlesDTO[]> {
+        const { title, 'current-page': currentPage, 'items-per-page': itemsPerPage }: { title?: string, 'current-page'?: number, 'items-per-page'?: number } = query;
+        const articles: GetArticlesDTO[] = await this.serviceInstance.getArticlesByPage(title, currentPage, itemsPerPage);
+        return articles;
     }
 
     @Get('2')
