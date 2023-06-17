@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+    <html>
+        <head>
+            <title>nest-project</title>
+            <link rel="stylesheet" href="../public/css/styles.css">
+        </head>
+    <body>
+        <div class="top-menu">
+            <a href="/">Home</a>
+            <a href="/articles">Articles</a>
+            <a href="#">Item 2</a>
+            <a href="#">Item 3</a>
+        </div>
+
+        </br></br></br>
+
+        <section class="content-section">
+            <table class="board">
+                <tr class="table-head">
+                    <th class="table-head-item"> Article Number </th>
+                    <th class="table-head-item"> Title </th>
+                    <th class="table-head-item"> Posted date </th>
+                    <th class="table-head-item"> Author </th>
+                </tr>
+                <% articles.forEach((article) => { %>
+                    <tr class="table-row">
+                        <td class="table-column">
+                            <a href="/articles/<%= article.article_id %>" ><%= article.article_id %></a>
+                        </td>
+                        <td class="table-column">
+                            <a href="/articles/<%= article.article_id %>" ><%= article.title %></a>
+                        </td>
+                        <td class="table-column">
+                            <a><%= article.post_date %></a>
+                        </td>
+                        <td class="table-column">
+                            <a><%= article.author %></a>
+                        </td>
+                    </tr>
+                <% }); %>
+            </table >
+        </br>
+        <% for (let i = pagination.startPage; i <= pagination.endPage; i++) { %>
+            <a href="/articles?items-per-page=pagination.itemsPerPage&current-page=<%= i %>"><%= i %></a>
+        <% } %>
+        </section>
+
+
+    </body>
+</html>
+

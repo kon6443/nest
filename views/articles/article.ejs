@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+    <html>
+        <head>
+            <title>nest-project</title>
+            <link rel="stylesheet" href="../public/css/styles.css">
+        </head>
+    <body>
+        <div class="top-menu">
+            <a href="/">Home</a>
+            <a href="/articles">Articles</a>
+            <a href="#">Item 2</a>
+            <a href="#">Item 3</a>
+        </div>
+        </br></br>
+
+        <section class="content-section">
+            <div class="row box">
+                <div class="col box" style="font-size: 40px;">
+                    <a> Title: <%= article.title %> </a>
+                </div>
+            </div>
+            <div class="row box">
+                <div class="col box" style="font-size: 25px;">
+                    <a> Posted date: <%= article.post_date %> </a>
+                </div>
+                <div class="col box" style="font-size: 25px;">
+                    <a> Updated date: <%= article.update_date %> </a>
+                </div>
+                <div class="col box" style="font-size: 25px;">
+                    <a> Author: <%= article.author %> </a>
+                </div>
+            </div>
+            <div class="row box">
+                <div class="col box" style="height: 40vh; font-size: 30px;">
+                    <a> <%= article.content %> </a>
+                </div>
+            </div>
+        </section>
+
+        </br>
+
+        <section class="content-section">
+            <table class="board">
+                <tr class="table-row">
+                    <td class="table-column">
+                        <a>Title: </a>
+                        <a><%= article.title %></a>
+                    </td>
+                </tr>
+                <tr class="table-row">
+                    <td class="table-column">
+                        <a>Posted date: </a>
+                        <a><%= article.post_date %></a>
+                    </td>
+                    <td class="table-column">
+                        <a>Updated date: </a>
+                        <a><%= article.update_date %></a>
+                    </td>
+                    <td class="table-column">
+                        <a>Author: </a>
+                        <a><%= article.author %></a>
+                    </td>
+                </tr>
+                <tr class="table-row">
+                    <td class="table-column">
+                        <a>Contents: </a> </br>
+                        <a><%= article.content %></a>
+                    </td>
+                </tr>
+            </table>
+        </section>
+
+    </body>
+</html>
+
