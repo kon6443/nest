@@ -4,6 +4,11 @@ body {
     color: #fff;
 }
 
+a {
+    text-decoration: none;
+    color: white;
+}
+
 .top-menu {
     background-color: #333;
     color: #fff;
@@ -24,12 +29,15 @@ body {
 }
 
 .content-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #333;
+    justify-content: center;
+    border: solid 1px white;
+  /*
   height: 100vh;
-  background-color: #333;
+  */
 
 }
 
@@ -55,4 +63,44 @@ body {
     color: #fff;
     font-size: 3rem;
 }
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-row {
+    text-align: center;
+    border: solid 1px white;
+}
+
+.table-column {
+    border: solid 1px white;
+    height: 10%;
+}
+
+.table-head-item {
+    border: solid 1px white;
+    height: 20%;
+}
+
+.table-head-item:nth-child(1) {
+    width: 10%;
+}
+
+.table-head-item:nth-child(2) {
+    width: 65%;
+}
+
+.table-head-item:nth-child(3) {
+    width: 15;
+}
+.table-head-item:nth-child(4) {
+    width: 10%;
+}
+
+.board {
+    border: solid 1px white;
+}
+
 
