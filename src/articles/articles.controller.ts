@@ -1,5 +1,5 @@
-import { Controller, Get, Req } from '@nestjs/common';
-import { Request } from 'express';
+import { Controller, Get, Req, Res, Param, ParseIntPipe, HttpStatus, Render } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { ArticlesService } from './articles.service';
 import { GetArticlesDTO } from './dto/get-articles.dto';
 
@@ -9,15 +9,28 @@ export class ArticlesController {
     constructor(private readonly serviceInstance: ArticlesService) {}
 
     @Get()
-    async handleGetMain(@Req() { query }: Request): Promise<GetArticlesDTO[]> {
-        const { title, 'current-page': currentPage, 'items-per-page': itemsPerPage }: { title?: string, 'current-page'?: number, 'items-per-page'?: number } = query;
-        const articles: GetArticlesDTO[] = await this.serviceInstance.getArticlesByPage(title, currentPage, itemsPerPage);
-        return articles;
+    @Render('articleMain')
+    async handleGetMain(@Req() { query }: Request): Promise<{ articles: GetArticlesDTO[], pagination: any }> {
+        try {
+            const { title, 'current-page': currentPage, 'items-per-page': itemsPerPage }: { title?: string, 'current-page'?: number, 'items-per-page'?: number } = query;
+            const { articles, pagination }: { articles: GetArticlesDTO[], pagination: any } = await this.serviceInstance.getMainPageItems(title, currentPage, itemsPerPage);
+            return { articles, pagination };
+        } catch(err) {
+            throw new Error(err);
+        }
+
     }
 
-    @Get('2')
-    handleGetPracticeReqObject(@Req() req: Request): string {
-        console.log('req:', req);
-        return 'practice request object.';
+    @Get(':id')
+    @Render('articles/article')
+    async handleGetPracticeReqObject(@Param('id', ParseIntPipe) id: number): Promise<{ article: GetArticlesDTO }> {
+        try {
+            const article: GetArticlesDTO = await this.serviceInstance.getArticleById(id);
+            console.log('article:', article);
+            return { article };
+        } catch(err) {
+            throw new Error(err);
+        }
     }
+
 }
