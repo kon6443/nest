@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+    <html>
+        <head>
+            <title>nest-project</title>
+            <link rel="stylesheet" href="../public/css/styles.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+        </head>
+    <body>
+        <div class="top-menu">
+            <a href="/">Home</a>
+            <a href="/articles">Forum</a>
+            <a href="#">One</a>
+            <a href="#">Two</a>
+        </div>
+        <h1>Welcome!</h1>
+
+        <section class="content-section">
+            <div class="item-container">
+                <div class="field-title">
+                    <label for="title"> <h3>Title: </h3></label> <br>
+                    <input type="text" id="title" name="title" placeholder="Enter a title here." style="width: 80%;"/> <br><br>
+                </div>
+                <div class="field-content">
+                    <label for="content"> <h3>Contents: </h3></label> <br>
+                    <textarea id="content" rows="10%" cols="100%" /></textarea>
+                </div>
+                <div class="field-button">
+                    <button type="button" id="back" onclick="location.href='/articles'">Back</button>
+                    <button type="button" id="post" onclick="postArticle()" >Save</button> <br><br>
+                </div>
+            </div>
+        </section>
+    <script src="../public/javascript/script.js"></script>
+    </body>
+</html>
+
