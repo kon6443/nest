@@ -102,5 +102,28 @@ export class ArticlesService {
         return article;
     }
 
+    getCurrentDate() {
+        const date_obj = new Date();
+        // const today = date_obj.getFullYear() +"-"+ parseInt(date_obj.getMonth()+1) +"-"+ date_obj.getDate();
+        const today = date_obj.getFullYear() + "-" + (date_obj.getMonth() + 1).toString() + "-" + date_obj.getDate();
+        return today;
+    }
+
+    async postArticle(author, title, content): Promise<number> {
+        const sql: string = `INSERT INTO Articles (title, content, post_date, update_date, author) VALUES (?, ?, ?, ?, ?);`;
+        const post_date = this.getCurrentDate();
+        const update_date = post_date;
+        const values = [ title, content, post_date, update_date, author ];
+        const res = await this.repositoryInstance.executeQuery(sql, values);
+        return res.affectedRows;
+    }
+
+    async deleteArticle(article_id, author): Promise<number> {
+        const sql = `DELETE FROM Articles WHERE article_id = ?;`;
+        const values = [ article_id ];
+        const res = await this.repositoryInstance.executeQuery(sql, values);
+        return res.affectedRows;
+    }
+
 }
 

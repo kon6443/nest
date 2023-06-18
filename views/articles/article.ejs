@@ -3,6 +3,7 @@
         <head>
             <title>nest-project</title>
             <link rel="stylesheet" href="../public/css/styles.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
         </head>
     <body>
         <div class="top-menu">
@@ -14,62 +15,41 @@
         </br></br>
 
         <section class="content-section">
-            <div class="row box">
-                <div class="col box" style="font-size: 40px;">
-                    <a> Title: <%= article.title %> </a>
-                </div>
-            </div>
-            <div class="row box">
-                <div class="col box" style="font-size: 25px;">
-                    <a> Posted date: <%= article.post_date %> </a>
-                </div>
-                <div class="col box" style="font-size: 25px;">
-                    <a> Updated date: <%= article.update_date %> </a>
-                </div>
-                <div class="col box" style="font-size: 25px;">
-                    <a> Author: <%= article.author %> </a>
-                </div>
-            </div>
-            <div class="row box">
-                <div class="col box" style="height: 40vh; font-size: 30px;">
-                    <a> <%= article.content %> </a>
-                </div>
-            </div>
-        </section>
-
-        </br>
-
-        <section class="content-section">
             <table class="board">
-                <tr class="table-row">
-                    <td class="table-column">
+                <tr class="board-row">
+                    <td class="board-column">
                         <a>Title: </a>
                         <a><%= article.title %></a>
                     </td>
-                </tr>
-                <tr class="table-row">
-                    <td class="table-column">
-                        <a>Posted date: </a>
-                        <a><%= article.post_date %></a>
-                    </td>
-                    <td class="table-column">
-                        <a>Updated date: </a>
-                        <a><%= article.update_date %></a>
-                    </td>
-                    <td class="table-column">
+                    <td class="board-column">
                         <a>Author: </a>
                         <a><%= article.author %></a>
                     </td>
                 </tr>
-                <tr class="table-row">
-                    <td class="table-column">
+                <tr class="board-row">
+                    <td class="board-column">
+                        <a>Posted date: </a> </br>
+                        <a><%= article.post_date %></a>
+                    </td>
+                    <td class="board-column">
+                        <a>Updated date: </a> </br>
+                        <a><%= article.update_date %></a>
+                    </td>
+                </tr>
+                <tr class="board-row">
+                    <td class="board-column" colspan="2">
                         <a>Contents: </a> </br>
                         <a><%= article.content %></a>
                     </td>
                 </tr>
             </table>
+            <div class="field-button">
+                <button type="button" id="back" onclick="location.href='/articles'">Back</button>
+                <button type="button" id="edit" onclick="editArticle()">Edit</button>
+                <button type="button" id="delete" onclick="deleteArticle('<%= article.article_id %>', '<%= article.author %>')">Delete</button>
+            </div>
         </section>
-
+        <script src="../public/javascript/script.js"></script>
     </body>
 </html>
 

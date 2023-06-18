@@ -43,9 +43,12 @@
         <% for (let i = pagination.startPage; i <= pagination.endPage; i++) { %>
             <a href="/articles?items-per-page=pagination.itemsPerPage&current-page=<%= i %>"><%= i %></a>
         <% } %>
+        <div class="field-button">
+            <button type="button" id="new" onclick="location.href='/articles/article-format'">New</button>
+        </div>
         </section>
 
-
+    <script src="../public/javascript/script.js"></script>
     </body>
 </html>
 
