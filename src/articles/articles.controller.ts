@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete,  Req, Res, Param, Body, ParseIntPipe, HttpStatus, Render } from '@nestjs/common';
+import { Controller, Get, Post, Delete, HttpCode, Req, Res, Param, Body, ParseIntPipe, HttpStatus, HttpException, Render } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ArticlesService } from './articles.service';
 import { GetArticlesDTO } from './dto/get-articles.dto';
@@ -30,34 +30,32 @@ export class ArticlesController {
     }
 
     @Post('article')
-    async handlePostArticle(@Body() body: any): Promise<string> {
+    @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
+    async handlePostArticle(@Body() body: any): Promise<{message: string, id: number}> {
         try {
-            console.log('handlePostArticle.');
             const { title, content }: { title: string, content: string } = body;
             const author = 'one';
-            const affectedRows = await this.serviceInstance.postArticle(author, title, content);
-            if(affectedRows===1) {
-                return 'Article has been posted.'
-            } else {
-                throw new Error('Something went wrong.');
+            const res = await this.serviceInstance.postArticle(author, title, content);
+            if(res.affectedRows!==1) {
+                throw new HttpException('Failed to post the article.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
+            return {
+                message: 'Article has been posted.',
+                id: res.insertId 
+            };
         } catch(err) {
             throw new Error(err);
         }
     }
     
     @Delete(':id')
-    async handleDeleteArticle(@Body() body: any): Promise<string> {
+    @HttpCode(HttpStatus.NO_CONTENT) // Set the HTTP status code to 204 No Content
+    async handleDeleteArticle(@Body() body: any): Promise<void> {
         try {
             const { id, author }: { id: number, author: string } = body;
-            console.log('id:', id);
-            console.log('author:', author);
             const affectedRows = await this.serviceInstance.deleteArticle(id, author);
-            console.log('affectedRows:', affectedRows);
-            if(affectedRows===1) {
-                return 'Article has been deleted.'
-            } else {
-                throw new Error('Something went wrong.');
+            if(affectedRows!==1) {
+                throw new HttpException('Failed to delete the article.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } catch(err) {
             throw new Error(err);

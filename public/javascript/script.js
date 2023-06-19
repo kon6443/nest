@@ -18,26 +18,26 @@ function postArticle() {
         data: { title, content },
         dataType: "json",
         success: function(res) {
-            console.log('res:', res);
+            window.location.href = `/articles/${res.id}`;
         },
-        error: function() {
-            console.log("Request failed");
+        error: function(res) {
+            alert(res);
         }
     });
 }
 
 function deleteArticle(article_id, author) {
-    console.log('article_id:', article_id);
     $.ajax({
         url: `/articles/${article_id}`,
         method: "DELETE",
         data: { id: article_id, author },
         dataType: "json",
         success: function(res) {
-            console.log('res:', res);
+            window.location.href = '/articles';
         },
-        error: function() {
-            console.log("Request failed");
+        error: function(res) {
+            alert(res);
         }
     });
+
 }

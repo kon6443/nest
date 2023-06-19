@@ -104,18 +104,17 @@ export class ArticlesService {
 
     getCurrentDate() {
         const date_obj = new Date();
-        // const today = date_obj.getFullYear() +"-"+ parseInt(date_obj.getMonth()+1) +"-"+ date_obj.getDate();
         const today = date_obj.getFullYear() + "-" + (date_obj.getMonth() + 1).toString() + "-" + date_obj.getDate();
         return today;
     }
 
-    async postArticle(author, title, content): Promise<number> {
+    async postArticle(author, title, content): Promise<any> {
         const sql: string = `INSERT INTO Articles (title, content, post_date, update_date, author) VALUES (?, ?, ?, ?, ?);`;
         const post_date = this.getCurrentDate();
         const update_date = post_date;
         const values = [ title, content, post_date, update_date, author ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
-        return res.affectedRows;
+        return res;
     }
 
     async deleteArticle(article_id, author): Promise<number> {
