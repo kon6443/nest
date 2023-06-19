@@ -117,11 +117,24 @@ export class ArticlesService {
         return res;
     }
 
-    async deleteArticle(article_id, author): Promise<number> {
+    async deleteArticle(article_id: number, author: string): Promise<number> {
         const sql = `DELETE FROM Articles WHERE article_id = ?;`;
         const values = [ article_id ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
         return res.affectedRows;
+    }
+
+    async putArticle(article_id: number, title: string, content: string): Promise<number> {
+        const sql: string = `UPDATE Articles SET title = ?, content = ?, update_date = ? WHERE article_id = ?;`;
+        const update_date = this.getCurrentDate();
+        const values = [ title, content, update_date, article_id ];
+        const res = await this.repositoryInstance.executeQuery(sql, values);
+        return res.changedRows;
+    }
+
+    async confirmArticleAuthor(id: number, user: string): Promise<boolean> {
+        const article = await this.getArticleById(id);
+        return article.author===user ? true : false;
     }
 
 }

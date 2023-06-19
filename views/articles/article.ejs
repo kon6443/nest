@@ -45,7 +45,7 @@
             </table>
             <div class="field-button">
                 <button type="button" id="back" onclick="location.href='/articles'">Back</button>
-                <button type="button" id="edit" onclick="editArticle()">Edit</button>
+                <button type="button" id="edit" onclick="location.href=`/articles/${<%= article.article_id %>}/edit?user=one`">Edit</button>
                 <button type="button" id="delete" onclick="deleteArticle('<%= article.article_id %>', '<%= article.author %>')">Delete</button>
             </div>
         </section>

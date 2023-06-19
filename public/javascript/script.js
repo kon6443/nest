@@ -26,6 +26,25 @@ function postArticle() {
     });
 }
 
+function putArticle(article_id) {
+    const title = document.getElementById('title').value;
+    const content = document.getElementById('content').value;
+    $.ajax({
+        url: `/articles/${article_id}`,
+        method: "PUT",
+        data: { title, content },
+        dataType: "json",
+        success: function(res) {
+            alert(res.message);
+            window.location.href = `/articles/${article_id}`;
+        },
+        error: function(res) {
+            alert('error: ' + JSON.stringify(res));
+        }
+    });
+}
+
+
 function deleteArticle(article_id, author) {
     $.ajax({
         url: `/articles/${article_id}`,
@@ -39,5 +58,5 @@ function deleteArticle(article_id, author) {
             alert(res);
         }
     });
-
 }
+
