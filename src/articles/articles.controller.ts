@@ -123,4 +123,34 @@ export class ArticlesController {
         }
     }
 
+    @Post(':id')
+    @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
+    async handlePostComment(@Param('id') id, @Body() body): Promise<void> {
+        try {
+            const { author, content } = body;
+            const insertId = await this.serviceInstance.postComment(id, author, content);
+            if(insertId<=0) {
+                throw new HttpException('Failed to comment.', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch(err) {
+            throw new Error(err);
+        }
+    }
+
+    /*
+    @Post(':id')
+    @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
+    async handlePostReply(@Param('id') id, @Body() body): Promise<void> {
+        try {
+            const { author, content } = body;
+            const insertId = await this.serviceInstance.postReply(id, author, content);
+            if(insertId<=0) {
+                throw new HttpException('Failed to comment.', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch(err) {
+            throw new Error(err);
+        }
+    }
+    */
+
 }

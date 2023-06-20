@@ -137,5 +137,28 @@ export class ArticlesService {
         return article.author===user ? true : false;
     }
 
+    async getMaxCommentOrder() {
+    }
+
+    async getNewGroupNum(article_id): Promise<number> {
+        const sql = `SELECT MAX(Comments.group_num) AS maxGroupNum FROM Articles RIGHT JOIN Comments ON Articles.article_id = Comments.article_id WHERE Articles.article_id = ?;`;
+        const values = [ article_id ];
+        const [res] = await this.repositoryInstance.executeQuery(sql, values);
+        res.maxGroupNum ??= 0;
+        return res.maxGroupNum+1;
+    }
+
+    async postComment(article_id, author, content): Promise<number> {
+        const sql = `INSERT INTO Comments (article_id, author, time, depth, comment_order, group_num, content) VALUES (?);`;
+        const time = this.getCurrentDate();
+        const depth = 0;
+        // Each comment has its own group_num. Replies are appended to comments.
+        const group_num = await this.getNewGroupNum(article_id);
+        const comment_order = 1;
+        const values = [ [ article_id, author, time, depth, comment_order, group_num, content ] ];
+        const { insertId } = await this.repositoryInstance.executeQuery(sql, values);
+        return insertId;
+    }
+
 }
 
