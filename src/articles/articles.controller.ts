@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Put, HttpCode, Req, Res, Param, Body, ParseIntPipe, HttpStatus, HttpException, Render } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Put, HttpCode, Req, Res, Param, Body, HttpStatus, HttpException, Render } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ArticlesService } from './articles.service';
 import { GetArticlesDTO } from './dto/get-articles.dto';
@@ -15,7 +15,7 @@ export class ArticlesController {
     @Render('articleMain')
     async handleGetMain(@Req() { query }: Request): Promise<{ articles: GetArticlesDTO[], pagination: any }> {
         try {
-            const { title, 'current-page': currentPage, 'items-per-page': itemsPerPage }: { title?: string, 'current-page'?: number, 'items-per-page'?: number } = query;
+            const { title, 'current-page': currentPage, 'items-per-page': itemsPerPage } = query;
             const { articles, pagination }: { articles: GetArticlesDTO[], pagination: any } = await this.serviceInstance.getMainPageItems(title, currentPage, itemsPerPage);
             return { articles, pagination };
         } catch(err) {
@@ -40,9 +40,9 @@ export class ArticlesController {
      */
     @Post('article')
     @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
-    async handlePostArticle(@Body() body: any): Promise<{message: string, id: number}> {
+    async handlePostArticle(@Body() body): Promise<{message: string, id: number}> {
         try {
-            const { title, content }: { title: string, content: string } = body;
+            const { title, content } = body;
             const author = 'one';
             const res = await this.serviceInstance.postArticle(author, title, content);
             if(res.affectedRows!==1) {
@@ -62,9 +62,9 @@ export class ArticlesController {
      */
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT) // Set the HTTP status code to 204 No Content
-    async handleDeleteArticle(@Body() body: any): Promise<void> {
+    async handleDeleteArticle(@Body() body): Promise<void> {
         try {
-            const { id, author }: { id: number, author: string } = body;
+            const { id, author } = body;
             const affectedRows = await this.serviceInstance.deleteArticle(id, author);
             if(affectedRows!==1) {
                 throw new HttpException('Failed to delete the article.', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -75,9 +75,9 @@ export class ArticlesController {
     }
 
     @Put(':id')
-    async handlePutArticle(@Param('id', ParseIntPipe) id: number, @Body() body: any): Promise<{message: string}> {
+    async handlePutArticle(@Param('id') id, @Body() body): Promise<{message: string}> {
         try {
-            const { title, content }: { title: string, content: string } = body;
+            const { title, content } = body;
             const changedRows = await this.serviceInstance.putArticle(id, title, content);
             if(changedRows!==1) {
                 throw new HttpException('Failed to edit the article.', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -94,9 +94,9 @@ export class ArticlesController {
     @Get(':id/edit')
     @HttpCode(HttpStatus.OK) // Set the response status code to 200 OK
     @Render('articles/editingArticleFormat') // /views/articles/editingArticleFormat.ejs
-    async handleGetEditingArticleFormat(@Param('id', ParseIntPipe) id: number, @Req() { query }: Request): Promise<{ article: GetArticlesDTO }> {
+    async handleGetEditingArticleFormat(@Param('id') id, @Req() { query }: Request): Promise<{ article: GetArticlesDTO }> {
         try {
-            const { user }: { user?: string } = query;
+            const { user } = query;
             const doesUserMatch = await this.serviceInstance.confirmArticleAuthor(id, user);
             if(!doesUserMatch) {
                 throw new HttpException('You are not authorized to edit this article.', HttpStatus.FORBIDDEN);
@@ -114,7 +114,7 @@ export class ArticlesController {
      */
     @Get(':id')
     @Render('articles/article') // /views/articles/article.ejs
-    async handleGetArticle(@Param('id', ParseIntPipe) id: number): Promise<{ article: GetArticlesDTO }> {
+    async handleGetArticle(@Param('id') id): Promise<{ article: GetArticlesDTO }> {
         try {
             const article: GetArticlesDTO = await this.serviceInstance.getArticleById(id);
             return { article };
