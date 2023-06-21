@@ -103,7 +103,7 @@ a {
 
 .board {
     border: solid 1px white;
-    width: 160vh;
+    width: 90vw;
     height: 70vh;
 }
 
@@ -165,5 +165,72 @@ button {
 
 .board-column {
     border: solid 1px white;
+}
+
+.article-comment {
+    border: solid 1px white;
+    width: 90vw;
+}
+
+.article-comment-row {
+    border: solid 1px white;
+}
+
+.article-comment-column {
+    border: solid 1px white;
+}
+
+.article {
+    border: solid 1px white;
+    width: 90vw;
+    height: 70vh;
+}
+
+.article-row {
+}
+
+.article-row:nth-child(1) {
+    height: 10%;
+    font-size: 3em;
+}
+
+.article-row:nth-child(2) {
+    height: 10%;
+    font-size: 1.5em;
+}
+
+.article-row:nth-child(3) {
+    height: 60%;
+    font-size: 2em;
+}
+
+.article-row:nth-child(4) {
+    height: 20%;
+}
+
+#comment {
+    width: 70%;
+}
+
+#comment-button {
+    width: 30%;
+}
+
+#comment-text {
+    width: 99%;
+    height: 90%
+}
+
+.article-column {
+    border: solid 1px white;
+}
+
+.article-button {
+    width: 90vw;
+    border: solid 1px white;
+}
+
+.article-button-column {
+    width: 20%;
 }
 

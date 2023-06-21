@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MySQLRepository } from './articles.MySQLRepository';
-import { GetArticlesDTO } from './dto/get-articles.dto'; 
+import { GetArticleDto } from './dto/get-article.dto'; 
+import { GetCommentDto } from './dto/get-comment.dto';
 
 @Injectable()
 export class ArticlesService {
@@ -73,29 +74,29 @@ export class ArticlesService {
     /**
      * Get the matching articles by title via repository.
      */
-    async readArticlesByTitle(title, startIndex, endIndex): Promise<GetArticlesDTO[]> {
+    async readArticlesByTitle(title, startIndex, endIndex): Promise<[GetArticleDto]> {
         const sql = `SELECT * FROM Articles WHERE TITLE LIKE ? ORDER BY article_id DESC LIMIT ? OFFSET ?;`;
         // limit represents the number of rows.
         const limit = endIndex-startIndex+1;
         // offset is used to specify the starting point for retrieving rows in query result.
         const offset = startIndex===0 ? 0 : startIndex;
         const values = [`%${title}%`, limit, offset];
-        const res: Promise<GetArticlesDTO[]> = await this.repositoryInstance.executeQuery(sql, values);
+        const res: Promise<[GetArticleDto]> = await this.repositoryInstance.executeQuery(sql, values);
         return res;
     }
 
     /**
      * Returns all articles and pagination items for main page.
      */
-    async getMainPageItems(title, currentPage, itemsPerPage): Promise<{ articles: GetArticlesDTO[], pagination: any }  > {
+    async getMainPageItems(title, currentPage, itemsPerPage): Promise<{ articles: [GetArticleDto], pagination: any }  > {
         ({ title, currentPage, itemsPerPage } = this.validateQueries(title, currentPage, itemsPerPage));
         const numberOfArticles = await this.readNumberOfArticlesByTitle(title);
         const pagination = this.getPaginationItems(numberOfArticles, currentPage, itemsPerPage);
-        const articles: GetArticlesDTO[] = await this.readArticlesByTitle(title, pagination.startIndex, pagination.endIndex);
+        const articles: [GetArticleDto] = await this.readArticlesByTitle(title, pagination.startIndex, pagination.endIndex);
         return { articles, pagination };
     }
 
-    async getArticleById(id): Promise<GetArticlesDTO> {
+    async getArticleById(id): Promise<GetArticleDto> {
         const sql = `SELECT * FROM Articles WHERE article_id = ?;`;
         const values = [`${id}`];
         const [article] = await this.repositoryInstance.executeQuery(sql, values);
@@ -158,6 +159,13 @@ export class ArticlesService {
         const values = [ [ article_id, author, time, depth, comment_order, group_num, content ] ];
         const { insertId } = await this.repositoryInstance.executeQuery(sql, values);
         return insertId;
+    }
+
+    async getCommentsByArticleId(id): Promise<GetCommentDto[]> {
+        const sql = `SELECT * FROM Comments WHERE article_id = ?`;
+        const values = [ id ]; 
+        const comments: GetCommentDto[] = await this.repositoryInstance.executeQuery(sql, values);
+        return comments;
     }
 
 }

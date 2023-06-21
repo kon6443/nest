@@ -15,39 +15,81 @@
         </br></br>
 
         <section class="content-section">
-            <table class="board">
-                <tr class="board-row">
-                    <td class="board-column">
+            <table class="article">
+                <tr class="article-row">
+                    <td class="article-column" colspan="3">
                         <a>Title: </a>
                         <a><%= article.title %></a>
                     </td>
-                    <td class="board-column">
+                </tr>
+                <tr class="article-row">
+                    <td class="article-column">
+                        <a>Posted date: </a> </br>
+                        <a><%= article.post_date %></a>
+                    </td>
+                    <td class="article-column">
+                        <a>Updated date: </a> </br>
+                        <a><%= article.update_date %></a>
+                    </td>
+                    <td class="article-column">
                         <a>Author: </a>
                         <a><%= article.author %></a>
                     </td>
                 </tr>
-                <tr class="board-row">
-                    <td class="board-column">
-                        <a>Posted date: </a> </br>
-                        <a><%= article.post_date %></a>
-                    </td>
-                    <td class="board-column">
-                        <a>Updated date: </a> </br>
-                        <a><%= article.update_date %></a>
-                    </td>
-                </tr>
-                <tr class="board-row">
-                    <td class="board-column" colspan="2">
+                <tr class="article-row">
+                    <td class="article-column" colspan="3">
                         <a>Contents: </a> </br>
                         <a><%= article.content %></a>
                     </td>
                 </tr>
+                <tr class="article-row">
+                    <td class="article-column" id="comment" colspan="2" >
+                        <textarea id="comment-text"> </textarea>
+                    </td>
+                    <td class="article-column" id="comment-button" colspan="1">
+                        <button type="button" onclick="postComment('<%= article.article_id %>')">Post comment</button>
+                    </td>
+                </tr>
             </table>
-            <div class="field-button">
-                <button type="button" id="back" onclick="location.href='/articles'">Back</button>
+
+            <table class="article-comment">
+                <% for (let i = 0; i < comments.length; i++) { %> 
+                    <tr class="article-comment-row">
+                        <td class="article-comment-column" >
+                            <span> <%= comments[i].author %> </span>
+                        </td>
+                        <td class="article-comment-column" colspan="2">
+                            <span> <%= comments[i].time %> </span>
+                        </td>
+                    </tr>
+                    <tr class="article-comment-row">
+                        <td class="article-comment-column" style="width:60%;" >
+                            <span> <%= comments[i].content %>  </span>
+                        </td>
+                        <td class="article-comment-column" style="width:20%;">
+                            <button type="button" id="edit-comment" onclick="getEditingCommentFormat()">Edit</button>
+                        </td>
+                        <td class="article-comment-column"style="width:20%;">
+                            <button type="button" id="delete-comment" onclick="deleteComment()">Delete</button>
+                        </td>
+                    </tr>
+                <% } %>
+            </table>
+
+            <table class="article-button">
+                <tr class="article-button-row" >
+                    <td class="article-button-column">
+                        <button type="button" id="back" onclick="location.href='/articles'">Back</button>
+                    </td>
+                    <td class="article-button-column">
                 <button type="button" id="edit" onclick="location.href=`/articles/${<%= article.article_id %>}/edit?user=one`">Edit</button>
-                <button type="button" id="delete" onclick="deleteArticle('<%= article.article_id %>', '<%= article.author %>')">Delete</button>
-            </div>
+                    </td>
+                    <td class="article-button-column">
+                        <button type="button" id="delete" onclick="deleteArticle('<%= article.article_id %>', '<%= article.author %>')">Delete</button>
+                    </td>
+                </tr>
+            </table>
+
         </section>
         <script src="../public/javascript/script.js"></script>
     </body>

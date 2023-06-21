@@ -60,3 +60,19 @@ function deleteArticle(article_id, author) {
     });
 }
 
+function postComment(article_id) {
+    const content = document.getElementById('comment-text').value;
+    $.ajax({
+        url: `/articles/${article_id}`,
+        method: "POST",
+        data: { content },
+        dataType: "json",
+        success: function(res) {
+            location.reload();
+        },
+        error: function(res) {
+            alert(res);
+        }
+    });
+}
+

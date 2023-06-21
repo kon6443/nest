@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Delete, Put, HttpCode, Req, Res, Param, Body, HttpStatus, HttpException, Render } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ArticlesService } from './articles.service';
-import { GetArticlesDTO } from './dto/get-articles.dto';
+import { GetArticleDto } from './dto/get-article.dto';
+import { GetCommentDto } from './dto/get-comment.dto';
 
 @Controller('articles')
 export class ArticlesController {
@@ -13,10 +14,10 @@ export class ArticlesController {
      */
     @Get()
     @Render('articleMain')
-    async handleGetMain(@Req() { query }: Request): Promise<{ articles: GetArticlesDTO[], pagination: any }> {
+    async handleGetMain(@Req() { query }: Request): Promise<{ articles: GetArticleDto[], pagination: any }> {
         try {
             const { title, 'current-page': currentPage, 'items-per-page': itemsPerPage } = query;
-            const { articles, pagination }: { articles: GetArticlesDTO[], pagination: any } = await this.serviceInstance.getMainPageItems(title, currentPage, itemsPerPage);
+            const { articles, pagination }: { articles: GetArticleDto[], pagination: any } = await this.serviceInstance.getMainPageItems(title, currentPage, itemsPerPage);
             return { articles, pagination };
         } catch(err) {
             throw new Error(err);
@@ -94,14 +95,14 @@ export class ArticlesController {
     @Get(':id/edit')
     @HttpCode(HttpStatus.OK) // Set the response status code to 200 OK
     @Render('articles/editingArticleFormat') // /views/articles/editingArticleFormat.ejs
-    async handleGetEditingArticleFormat(@Param('id') id, @Req() { query }: Request): Promise<{ article: GetArticlesDTO }> {
+    async handleGetEditingArticleFormat(@Param('id') id, @Req() { query }: Request): Promise<{ article: GetArticleDto }> {
         try {
             const { user } = query;
             const doesUserMatch = await this.serviceInstance.confirmArticleAuthor(id, user);
             if(!doesUserMatch) {
                 throw new HttpException('You are not authorized to edit this article.', HttpStatus.FORBIDDEN);
             }
-            const article: GetArticlesDTO = await this.serviceInstance.getArticleById(id);
+            const article: GetArticleDto = await this.serviceInstance.getArticleById(id);
             return { article };
         } catch(err) {
             console.error(err);
@@ -114,10 +115,11 @@ export class ArticlesController {
      */
     @Get(':id')
     @Render('articles/article') // /views/articles/article.ejs
-    async handleGetArticle(@Param('id') id): Promise<{ article: GetArticlesDTO }> {
+    async handleGetArticle(@Param('id') id): Promise<{ article: GetArticleDto, comments: GetCommentDto[] }> {
         try {
-            const article: GetArticlesDTO = await this.serviceInstance.getArticleById(id);
-            return { article };
+            const article:  GetArticleDto = await this.serviceInstance.getArticleById(id);
+            const comments: GetCommentDto[] = await this.serviceInstance.getCommentsByArticleId(id);
+            return { article, comments };
         } catch(err) {
             throw new Error(err);
         }
@@ -125,12 +127,16 @@ export class ArticlesController {
 
     @Post(':id')
     @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
-    async handlePostComment(@Param('id') id, @Body() body): Promise<void> {
+    async handlePostComment(@Param('id') id, @Body() body): Promise<{ message: string }> {
         try {
-            const { author, content } = body;
+            const {  content } = body;
+            const author = 'one';
             const insertId = await this.serviceInstance.postComment(id, author, content);
             if(insertId<=0) {
                 throw new HttpException('Failed to comment.', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            return {
+                message: 'Comment has been posted.'
             }
         } catch(err) {
             throw new Error(err);
