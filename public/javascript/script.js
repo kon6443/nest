@@ -62,6 +62,10 @@ function deleteArticle(article_id, author) {
 
 function postComment(article_id) {
     const content = document.getElementById('comment-text').value;
+    if(content==='') {
+        alert('Type something to save a comment.');
+        return ;
+    }
     $.ajax({
         url: `/articles/${article_id}`,
         method: "POST",
@@ -76,3 +80,17 @@ function postComment(article_id) {
     });
 }
 
+function deleteComment(id, depth) {
+    $.ajax({
+        url: `/articles/${id}/${depth}`,
+        method: "DELETE",
+        dataType: "json",
+        success: function(res) {
+            location.reload();
+        },
+        error: function(res) {
+            alert(res);
+        }
+    });
+
+}

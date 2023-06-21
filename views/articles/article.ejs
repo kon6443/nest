@@ -44,7 +44,7 @@
                 </tr>
                 <tr class="article-row">
                     <td class="article-column" id="comment" colspan="2" >
-                        <textarea id="comment-text"> </textarea>
+                        <textarea id="comment-text"></textarea>
                     </td>
                     <td class="article-column" id="comment-button" colspan="1">
                         <button type="button" onclick="postComment('<%= article.article_id %>')">Post comment</button>
@@ -70,7 +70,7 @@
                             <button type="button" id="edit-comment" onclick="getEditingCommentFormat()">Edit</button>
                         </td>
                         <td class="article-comment-column"style="width:20%;">
-                            <button type="button" id="delete-comment" onclick="deleteComment()">Delete</button>
+                            <button type="button" id="delete-comment" onclick="deleteComment('<%= comments[i].comment_id %>', '<%= comments[i].depth %>')">Delete</button>
                         </td>
                     </tr>
                 <% } %>

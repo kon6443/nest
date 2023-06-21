@@ -1,8 +1,8 @@
 /**
- * create-articles.dto.ts
+ * put-article.dto.ts
  */
 
-export class CreateArticleDto {
+export class PutArticleDto {
     article_id: number;
     title: string;
     content: string;
@@ -10,7 +10,7 @@ export class CreateArticleDto {
     update_date: string;
     author: string;
 
-    constructor(partial: Partial<CreateArticleDto>) {
+    constructor(partial: Partial<PutArticleDto>) {
         Object.assign(this, partial);
     }
 }

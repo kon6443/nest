@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { MySQLRepository } from './articles.MySQLRepository';
+
+import { CreateArticleDto } from './dto/create-article.dto';
 import { GetArticleDto } from './dto/get-article.dto'; 
+import { PutArticleDto } from './dto/put-article.dto';
+import { DeleteArticleDto } from './dto/delete-article.dto';
+
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { GetCommentDto } from './dto/get-comment.dto';
 
 @Injectable()
@@ -109,26 +115,26 @@ export class ArticlesService {
         return today;
     }
 
-    async postArticle(author, title, content): Promise<any> {
+    async postArticle(createArticleDto: CreateArticleDto): Promise<any> {
         const sql = `INSERT INTO Articles (title, content, post_date, update_date, author) VALUES (?, ?, ?, ?, ?);`;
         const post_date = this.getCurrentDate();
         const update_date = post_date;
-        const values = [ title, content, post_date, update_date, author ];
+        const values = [ createArticleDto.title, createArticleDto.content, post_date, update_date, createArticleDto.author ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
         return res;
     }
 
-    async deleteArticle(article_id, author): Promise<number> {
+    async deleteArticle(deleteArticleDto: DeleteArticleDto): Promise<number> {
         const sql = `DELETE FROM Articles WHERE article_id = ?;`;
-        const values = [ article_id ];
+        const values = [ [ deleteArticleDto.id ] ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
         return res.affectedRows;
     }
 
-    async putArticle(article_id, title, content): Promise<number> {
+    async putArticle(article_id, putArticleDto: PutArticleDto): Promise<number> {
         const sql = `UPDATE Articles SET title = ?, content = ?, update_date = ? WHERE article_id = ?;`;
         const update_date = this.getCurrentDate();
-        const values = [ title, content, update_date, article_id ];
+        const values = [ putArticleDto.title, putArticleDto.content, update_date, article_id ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
         return res.changedRows;
     }
@@ -149,23 +155,30 @@ export class ArticlesService {
         return res.maxGroupNum+1;
     }
 
-    async postComment(article_id, author, content): Promise<number> {
+    async postComment(article_id, createCommentDto: CreateCommentDto): Promise<number> {
         const sql = `INSERT INTO Comments (article_id, author, time, depth, comment_order, group_num, content) VALUES (?);`;
         const time = this.getCurrentDate();
         const depth = 0;
         // Each comment has its own group_num. Replies are appended to comments.
-        const group_num = await this.getNewGroupNum(article_id);
+        const group_num = await this.getNewGroupNum(createCommentDto.id);
         const comment_order = 1;
-        const values = [ [ article_id, author, time, depth, comment_order, group_num, content ] ];
+        const values = [ [ article_id, createCommentDto.author, time, depth, comment_order, group_num, createCommentDto.content ] ];
         const { insertId } = await this.repositoryInstance.executeQuery(sql, values);
         return insertId;
     }
 
     async getCommentsByArticleId(id): Promise<GetCommentDto[]> {
-        const sql = `SELECT * FROM Comments WHERE article_id = ?`;
+        const sql = `SELECT * FROM Comments WHERE article_id = ? ORDER BY group_num, comment_order;`;
         const values = [ id ]; 
         const comments: GetCommentDto[] = await this.repositoryInstance.executeQuery(sql, values);
         return comments;
+    }
+
+    async deleteCommentById(id, depth): Promise<number> {
+        const sql = depth ? `DELETE FROM Comments WHERE comment_id = ?;` : `UPDATE Comments SET author = 'DELETED', author = 'DELETED', content = 'DELETED' WHERE comment_id = ?;`;
+        const values = [ id ];
+        const res = await this.repositoryInstance.executeQuery(sql, values);
+        return res.affectedRows;
     }
 
 }

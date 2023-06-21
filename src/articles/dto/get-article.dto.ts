@@ -1,5 +1,5 @@
 /**
- * get-articles.dto.ts
+ * get-article.dto.ts
  */
 
 export class GetArticleDto {

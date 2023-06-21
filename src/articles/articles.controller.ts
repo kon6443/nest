@@ -1,8 +1,14 @@
-import { Controller, Get, Post, Delete, Put, HttpCode, Req, Res, Param, Body, HttpStatus, HttpException, Render } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Put, HttpCode, Req, Res, Param, ParseIntPipe, Body, HttpStatus, HttpException, Render } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ArticlesService } from './articles.service';
+
+import { CreateArticleDto } from './dto/create-article.dto';
 import { GetArticleDto } from './dto/get-article.dto';
+import { PutArticleDto } from './dto/put-article.dto';
+import { DeleteArticleDto } from './dto/delete-article.dto';
+
 import { GetCommentDto } from './dto/get-comment.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
 
 @Controller('articles')
 export class ArticlesController {
@@ -41,11 +47,10 @@ export class ArticlesController {
      */
     @Post('article')
     @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
-    async handlePostArticle(@Body() body): Promise<{message: string, id: number}> {
+    async handlePostArticle(@Body() createArticleDto: CreateArticleDto): Promise<{message: string, id: number}> {
         try {
-            const { title, content } = body;
-            const author = 'one';
-            const res = await this.serviceInstance.postArticle(author, title, content);
+            createArticleDto.author = 'one'; 
+            const res = await this.serviceInstance.postArticle(createArticleDto);
             if(res.affectedRows!==1) {
                 throw new HttpException('Failed to post the article.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -63,10 +68,9 @@ export class ArticlesController {
      */
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT) // Set the HTTP status code to 204 No Content
-    async handleDeleteArticle(@Body() body): Promise<void> {
+    async handleDeleteArticle(@Body() deleteArticleDto: DeleteArticleDto): Promise<void> {
         try {
-            const { id, author } = body;
-            const affectedRows = await this.serviceInstance.deleteArticle(id, author);
+            const affectedRows = await this.serviceInstance.deleteArticle(deleteArticleDto);
             if(affectedRows!==1) {
                 throw new HttpException('Failed to delete the article.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -76,10 +80,9 @@ export class ArticlesController {
     }
 
     @Put(':id')
-    async handlePutArticle(@Param('id') id, @Body() body): Promise<{message: string}> {
+    async handlePutArticle(@Param('id') id, @Body() putArticleDto: PutArticleDto): Promise<{message: string}> {
         try {
-            const { title, content } = body;
-            const changedRows = await this.serviceInstance.putArticle(id, title, content);
+            const changedRows = await this.serviceInstance.putArticle(id, putArticleDto);
             if(changedRows!==1) {
                 throw new HttpException('Failed to edit the article.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -127,11 +130,10 @@ export class ArticlesController {
 
     @Post(':id')
     @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
-    async handlePostComment(@Param('id') id, @Body() body): Promise<{ message: string }> {
+    async handlePostComment(@Param('id') id, @Body() createCommentDto: CreateCommentDto): Promise<{ message: string }> {
         try {
-            const {  content } = body;
-            const author = 'one';
-            const insertId = await this.serviceInstance.postComment(id, author, content);
+            createCommentDto.author = 'one';
+            const insertId = await this.serviceInstance.postComment(id, createCommentDto);
             if(insertId<=0) {
                 throw new HttpException('Failed to comment.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -143,20 +145,18 @@ export class ArticlesController {
         }
     }
 
-    /*
-    @Post(':id')
-    @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
-    async handlePostReply(@Param('id') id, @Body() body): Promise<void> {
+    @Delete(':id/:depth')
+    @HttpCode(HttpStatus.NO_CONTENT) // Set the HTTP status code to 204 No Content
+    async handlePostReply(@Param('id') id, @Param('depth', ParseIntPipe) depth: number): Promise<{ message: string }> {
         try {
-            const { author, content } = body;
-            const insertId = await this.serviceInstance.postReply(id, author, content);
-            if(insertId<=0) {
-                throw new HttpException('Failed to comment.', HttpStatus.INTERNAL_SERVER_ERROR);
+            const affectedRows = await this.serviceInstance.deleteCommentById(id, depth);
+            if(affectedRows!==1) {
+                throw new HttpException('Failed to delete the comment.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
+            return { message: 'Comment has been deleted.' }
         } catch(err) {
             throw new Error(err);
         }
     }
-    */
 
 }
