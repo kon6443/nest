@@ -79,6 +79,9 @@ export class ArticlesController {
         }
     }
 
+    /**
+     * Update the article.
+     */
     @Put(':id')
     async handlePutArticle(@Param('id') id, @Body() putArticleDto: PutArticleDto): Promise<{message: string}> {
         try {
@@ -128,6 +131,9 @@ export class ArticlesController {
         }
     }
 
+    /**
+     * Post a comment.
+     */
     @Post(':id')
     @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
     async handlePostComment(@Param('id') id, @Body() createCommentDto: CreateCommentDto): Promise<{ message: string }> {
@@ -145,9 +151,12 @@ export class ArticlesController {
         }
     }
 
+    /**
+     * Delete the comment.
+     */
     @Delete(':id/:depth')
     @HttpCode(HttpStatus.NO_CONTENT) // Set the HTTP status code to 204 No Content
-    async handlePostReply(@Param('id') id, @Param('depth', ParseIntPipe) depth: number): Promise<{ message: string }> {
+    async handleDeleteComment(@Param('id') id, @Param('depth', ParseIntPipe) depth: number): Promise<{ message: string }> {
         try {
             const affectedRows = await this.serviceInstance.deleteCommentById(id, depth);
             if(affectedRows!==1) {
