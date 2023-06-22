@@ -16,6 +16,47 @@ export class ArticlesController {
     constructor(private readonly serviceInstance: ArticlesService) {}
 
     /**
+     * Save an article.
+     */
+    @Post('article')
+    @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
+    async handlePostArticle(@Body() createArticleDto: CreateArticleDto): Promise<{message: string, id: number}> {
+        try {
+            createArticleDto.author = 'one'; 
+            const res = await this.serviceInstance.postArticle(createArticleDto);
+            if(res.affectedRows!==1) {
+                throw new HttpException('Failed to post the article.', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            return {
+                message: 'Article has been posted.',
+                id: res.insertId 
+            };
+        } catch(err) {
+            throw new Error(err);
+        }
+    }
+    
+    /**
+     * Post a comment.
+     */
+    @Post(':id')
+    @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
+    async handlePostComment(@Param('id') id, @Body() createCommentDto: CreateCommentDto): Promise<{ message: string }> {
+        try {
+            createCommentDto.author = 'one';
+            const insertId = await this.serviceInstance.postComment(id, createCommentDto);
+            if(insertId<=0) {
+                throw new HttpException('Failed to comment.', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            return {
+                message: 'Comment has been posted.'
+            }
+        } catch(err) {
+            throw new Error(err);
+        }
+    }
+
+    /**
      * Display main page of articles.
      */
     @Get()
@@ -43,53 +84,15 @@ export class ArticlesController {
     }
 
     /**
-     * Save an article.
+     * Display an article.
      */
-    @Post('article')
-    @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
-    async handlePostArticle(@Body() createArticleDto: CreateArticleDto): Promise<{message: string, id: number}> {
+    @Get(':id')
+    @Render('articles/article') // /views/articles/article.ejs
+    async handleGetArticle(@Param('id') id): Promise<{ article: GetArticleDto, comments: GetCommentDto[] }> {
         try {
-            createArticleDto.author = 'one'; 
-            const res = await this.serviceInstance.postArticle(createArticleDto);
-            if(res.affectedRows!==1) {
-                throw new HttpException('Failed to post the article.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            return {
-                message: 'Article has been posted.',
-                id: res.insertId 
-            };
-        } catch(err) {
-            throw new Error(err);
-        }
-    }
-    
-    /**
-     * Delete the article.
-     */
-    @Delete(':id')
-    @HttpCode(HttpStatus.NO_CONTENT) // Set the HTTP status code to 204 No Content
-    async handleDeleteArticle(@Body() deleteArticleDto: DeleteArticleDto): Promise<void> {
-        try {
-            const affectedRows = await this.serviceInstance.deleteArticle(deleteArticleDto);
-            if(affectedRows!==1) {
-                throw new HttpException('Failed to delete the article.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } catch(err) {
-            throw new Error(err);
-        }
-    }
-
-    /**
-     * Update the article.
-     */
-    @Put(':id')
-    async handlePutArticle(@Param('id') id, @Body() putArticleDto: PutArticleDto): Promise<{message: string}> {
-        try {
-            const changedRows = await this.serviceInstance.putArticle(id, putArticleDto);
-            if(changedRows!==1) {
-                throw new HttpException('Failed to edit the article.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            return { message: 'Article has been updated.'};
+            const article:  GetArticleDto = await this.serviceInstance.getArticleById(id);
+            const comments: GetCommentDto[] = await this.serviceInstance.getCommentsByArticleId(id);
+            return { article, comments };
         } catch(err) {
             throw new Error(err);
         }
@@ -117,34 +120,31 @@ export class ArticlesController {
     }
 
     /**
-     * Display an article.
+     * Update the article.
      */
-    @Get(':id')
-    @Render('articles/article') // /views/articles/article.ejs
-    async handleGetArticle(@Param('id') id): Promise<{ article: GetArticleDto, comments: GetCommentDto[] }> {
+    @Put(':id')
+    async handlePutArticle(@Param('id') id, @Body() putArticleDto: PutArticleDto): Promise<{message: string}> {
         try {
-            const article:  GetArticleDto = await this.serviceInstance.getArticleById(id);
-            const comments: GetCommentDto[] = await this.serviceInstance.getCommentsByArticleId(id);
-            return { article, comments };
+            const changedRows = await this.serviceInstance.putArticle(id, putArticleDto);
+            if(changedRows!==1) {
+                throw new HttpException('Failed to edit the article.', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            return { message: 'Article has been updated.'};
         } catch(err) {
             throw new Error(err);
         }
     }
 
     /**
-     * Post a comment.
+     * Delete the article.
      */
-    @Post(':id')
-    @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
-    async handlePostComment(@Param('id') id, @Body() createCommentDto: CreateCommentDto): Promise<{ message: string }> {
+    @Delete(':id')
+    @HttpCode(HttpStatus.NO_CONTENT) // Set the HTTP status code to 204 No Content
+    async handleDeleteArticle(@Body() deleteArticleDto: DeleteArticleDto): Promise<void> {
         try {
-            createCommentDto.author = 'one';
-            const insertId = await this.serviceInstance.postComment(id, createCommentDto);
-            if(insertId<=0) {
-                throw new HttpException('Failed to comment.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            return {
-                message: 'Comment has been posted.'
+            const affectedRows = await this.serviceInstance.deleteArticle(deleteArticleDto);
+            if(affectedRows!==1) {
+                throw new HttpException('Failed to delete the article.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } catch(err) {
             throw new Error(err);
