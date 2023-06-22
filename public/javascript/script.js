@@ -94,3 +94,18 @@ function deleteComment(id, depth) {
     });
 
 }
+
+function getEditingCommentFormat(id) {
+    $.ajax({
+        url: `/articles/comments/${id}`,
+        method: "GET",
+        dataType: "json",
+        success: function(res) {
+            const commentEdit = document.getElementById('commentEdit'+id);
+            commentEdit.classList.toggle('hidden');
+        },
+        error: function(res) {
+            alert(res);
+        }
+    });
+}

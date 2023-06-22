@@ -12,10 +12,13 @@ a {
 .top-menu {
     background-color: #333;
     color: #fff;
-    padding: 10px;
+    padding: 1%;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 94%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .top-menu a {
@@ -29,13 +32,23 @@ a {
 }
 
 .content-section {
+    /** flex property enables items to be aligned along with x axis. 
+     * Each item occupies its own width length. */
     display: flex;
+    /* justify-content property aligns the items to be in the middle horizontally.
+     */
     justify-content: center;
+    /* align-items aligns the items to be in the middle vertically.
+     */
     align-items: center;
+    /* flex-direction specifies the direction of the flexible items.
+     */
     flex-direction: column;
     background-color: #333;
-    width: 100%;
-    height: 94vh;
+    width: 94%;
+    height: 100%;
+    margin-left: auto;
+    margin-right: auto;
   /*
   height: 100vh;
   */
@@ -169,7 +182,8 @@ button {
 
 .article-comment {
     border: solid 1px white;
-    width: 90vw;
+    width: 90%;
+    margin-bottom: 2%;
 }
 
 .article-comment-row {
@@ -181,9 +195,11 @@ button {
 }
 
 .article {
+    margin-top: 3%;
+    margin-bottom: 2%;
     border: solid 1px white;
-    width: 90vw;
-    height: 70vh;
+    width: 90%;
+    height: 70%;
 }
 
 .article-row {
@@ -226,11 +242,18 @@ button {
 }
 
 .article-button {
-    width: 90vw;
+    width: 90%;
+    margin-bottom: 3%;
+    margin-left: auto;
+    margin-right: auto;
     border: solid 1px white;
 }
 
 .article-button-column {
-    width: 20%;
+    width: 10%;
+    height: 5%;
 }
 
+.hidden {
+    display: none;
+}
