@@ -9,6 +9,7 @@ import { DeleteArticleDto } from './dto/delete-article.dto';
 
 import { GetCommentDto } from './dto/get-comment.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { PutCommentDto } from './dto/put-comment.dto';
 
 @Controller('articles')
 export class ArticlesController {
@@ -119,6 +120,23 @@ export class ArticlesController {
         }
     }
 
+    /* Authorize if user and comment's author matches.
+     */
+    @Get('comments/:id')
+    @HttpCode(HttpStatus.OK)
+    async handleGetAuthorizeCommentAuthor(@Param('id') id): Promise<{ message: string }> {
+        try {
+            const user = 'one';
+            const userNotMatch = await this.serviceInstance.confirmCommentAuthor(id, user);
+            if(userNotMatch) {
+                throw new HttpException('You are not authorized to edit this comment.', HttpStatus.FORBIDDEN);
+            }
+            return { message: 'Authorized.' }
+        } catch(err) {
+            throw new Error(err);
+        }
+    }
+
     /**
      * Update the article.
      */
@@ -126,6 +144,23 @@ export class ArticlesController {
     async handlePutArticle(@Param('id') id, @Body() putArticleDto: PutArticleDto): Promise<{message: string}> {
         try {
             const changedRows = await this.serviceInstance.putArticle(id, putArticleDto);
+            if(changedRows!==1) {
+                throw new HttpException('Failed to edit the article.', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            return { message: 'Article has been updated.'};
+        } catch(err) {
+            throw new Error(err);
+        }
+    }
+
+    /**
+     * Update the comment.
+     */
+    @Put('comments/:id')
+    async handlePutComment(@Param('id') id, @Body() putCommentDto: PutCommentDto): Promise<{message: string}> {
+        try {
+            putCommentDto.comment_id = id;
+            const changedRows = await this.serviceInstance.putComment(putCommentDto);
             if(changedRows!==1) {
                 throw new HttpException('Failed to edit the article.', HttpStatus.INTERNAL_SERVER_ERROR);
             }

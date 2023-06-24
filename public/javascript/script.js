@@ -105,7 +105,24 @@ function getEditingCommentFormat(id) {
             commentEdit.classList.toggle('hidden');
         },
         error: function(res) {
-            alert(res);
+            alert('Invalid request.');
+        }
+    });
+}
+
+function putComment(comment_id) {
+    const content = document.getElementById('comment-edit-content'+comment_id).value;
+    $.ajax({
+        url: `/articles/comments/${comment_id}`,
+        method: "PUT",
+        data: { content: content },
+        dataType: "json",
+        success: function(res) {
+            alert(res.message);
+            location.reload();
+        },
+        error: function(res) {
+            alert('Invalid request.');
         }
     });
 }

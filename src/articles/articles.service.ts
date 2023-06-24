@@ -8,6 +8,7 @@ import { DeleteArticleDto } from './dto/delete-article.dto';
 
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { GetCommentDto } from './dto/get-comment.dto';
+import { PutCommentDto } from './dto/put-comment.dto';
 
 @Injectable()
 export class ArticlesService {
@@ -139,6 +140,13 @@ export class ArticlesService {
         return res.changedRows;
     }
 
+    async putComment(putCommentDto: PutCommentDto): Promise<number> {
+        const sql = `UPDATE Comments SET content = ? WHERE comment_id = ?;`;
+        const values = [ putCommentDto.content, putCommentDto.comment_id ];
+        const res = await this.repositoryInstance.executeQuery(sql, values);
+        return res.changedRows;
+    }
+
     async confirmArticleAuthor(id, user): Promise<boolean> {
         const article = await this.getArticleById(id);
         return article.author===user ? true : false;
@@ -179,6 +187,14 @@ export class ArticlesService {
         const values = [ id ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
         return res.affectedRows;
+    }
+
+    async confirmCommentAuthor(id, user): Promise<boolean> {
+        const sql = `SELECT * FROM Comments WHERE comment_id = ?`;
+        const values = [ id ];
+        const getCommentDto: GetCommentDto = await this.repositoryInstance.executeQuery(sql, values);
+        const userNotMatch = getCommentDto[0].author!==user ? true : false;
+        return userNotMatch;
     }
 
 }

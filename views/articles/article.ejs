@@ -75,10 +75,10 @@
                     </tr>
                     <tr class="article-comment-row, hidden" id="commentEdit<%= comments[i].comment_id %>">
                         <td class="article-comment-column" colspan="2" >
-                            <textarea style="width: 99%;" ><%= comments[i].content %></textarea>
+                            <textarea style="width: 99%;" id="comment-edit-content<%= comments[i].comment_id %>" ><%= comments[i].content %></textarea>
                         </td>
                         <td class="article-comment-column">
-                            <button type="button" onclick="ment('<%= comments[i].comment_id %>', '<%= comments[i].content %>')">Save</button>
+                            <button type="button" onclick="putComment('<%= comments[i].comment_id %>')">Save</button>
                         </td>
                     </tr>
                     <tr class="article-comment-row">
