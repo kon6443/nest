@@ -40,9 +40,11 @@
                 <% }); %>
             </table >
         </br>
+        <div class="pagination">
         <% for (let i = pagination.startPage; i <= pagination.endPage; i++) { %>
             <a href="/articles?items-per-page=pagination.itemsPerPage&current-page=<%= i %>"><%= i %></a>
         <% } %>
+        </div>
         <div class="field-button">
             <button type="button" id="new" onclick="location.href='/articles/article-format'">New</button>
         </div>

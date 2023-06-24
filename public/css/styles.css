@@ -115,6 +115,7 @@ a {
 }
 
 .board {
+    margin-top: 3%;
     border: solid 1px white;
     width: 90vw;
     height: 70vh;
@@ -256,4 +257,24 @@ button {
 
 .hidden {
     display: none;
+}
+
+.pagination {
+    display: flex;
+}
+
+.main {
+    margin-top: 5%;
+    margin-bottom: 5%;
+    width: 80vw;
+    height: 80vh;
+}
+
+.main tr {
+}
+
+.main td {
+    font-size: 5rem;
+    border: solid 1px white;
+    text-align: center;
 }
