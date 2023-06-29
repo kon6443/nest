@@ -126,3 +126,56 @@ function putComment(comment_id) {
         }
     });
 }
+
+function createAccount() {
+    const id = document.getElementById('signUpId').value;
+    const name = document.getElementById('signUpName').value;
+    const address = document.getElementById('signUpAddress').value;
+    const phone_number = document.getElementById('signUpPhoneNumber').value;
+    const pw = document.getElementById('signUpPassword').value;
+    const pwc = document.getElementById('signUpPasswordConfirmation').value;
+    $.ajax({
+        url: `/user/new`,
+        method: "POST",
+        data: { id, name, address, phone_number, pw, pwc },
+        dataType: "json",
+        success: function(res) {
+            alert(res.message);
+            location.reload();
+        },
+        error: function(res) {
+            alert('Invalid request.');
+        }
+    });
+}
+
+function signIn() {
+    const id = document.getElementById('signInId').value;
+    const pw = document.getElementById('signInPassword').value;
+    $.ajax({
+        url: `/user/login`,
+        method: "POST",
+        data: { id, pw },
+        dataType: "json",
+        success: function(res) {
+            alert(res.message);
+            location.reload();
+        },
+        error: function(res) {
+            alert('Invalid request.');
+        }
+    });
+
+}
+
+$("#signUpPasswordConfirmation").on("keyup", function () {
+    if(window.event.keyCode==13 && $(this).val()!=""){
+        createAccount();
+    }
+});
+
+$("#signInPassword").on("keyup", function () {
+    if(window.event.keyCode==13 && $(this).val()!=""){
+        signIn();
+    }
+});
