@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MySQLRepository } from './articles.MySQLRepository';
+import { MySQLRepository } from '../shared/mysql.repository';
 
 import { CreateArticleDto } from './dto/create-article.dto';
 import { GetArticleDto } from './dto/get-article.dto'; 

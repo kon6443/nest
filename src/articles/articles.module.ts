@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ArticlesController } from './articles.controller';
 import { ArticlesService } from './articles.service';
-import { MySQLRepository } from './articles.MySQLRepository';
+
+import { SharedModule } from '../shared/shared.module';
 
 @Module({
-  controllers: [ArticlesController],
-  providers: [ArticlesService, MySQLRepository]
+    imports: [ SharedModule ],
+    controllers: [ArticlesController],
+    providers: [ArticlesService]
 })
 export class ArticlesModule {}
