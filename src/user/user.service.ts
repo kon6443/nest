@@ -3,10 +3,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { ReadUserDto } from './dto/read-user.dto';
 
 import { NotFoundException } from '../shared/exceptions/custom.NotFoundException';
-
+import { config } from '../../config/config';
 import { MySQLRepository } from '../shared/mysql.repository';
 
 import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class UserService {
@@ -83,16 +84,22 @@ export class UserService {
     }
 
     async authenticateUser(userTypedPassword, encryptedPassword) {
-        console.log('userTypedPassword:', userTypedPassword);
-        console.log('encryptedPassword:', encryptedPassword);
         const notAuthenticated = !(await bcrypt.compare(userTypedPassword, encryptedPassword));
         if(notAuthenticated) {
-            throw new HttpException('', HttpStatus.UNAUTHORIZED);
+            throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
         }
     }
 
-    issueJWT() {
-        console.log('Hello from issueJWT() method.');
+    async issueJWT(id): Promise<string> {
+        const payload = {
+            id
+        }
+        const token = await jwt.sign(
+            payload,
+            config.JWT.SECRET,
+            { expiresIn: '60m'}
+        ); 
+        return token;
     }
 
 }

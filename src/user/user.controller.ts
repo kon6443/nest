@@ -26,19 +26,13 @@ export class UserController {
 
     @Post('login')
     @HttpCode(HttpStatus.OK) // Set the HTTP status code to 200 okay.
-    async handlePostLogin(@Body() createUserDto: CreateUserDto): Promise<{ message: string }> {
+    async handlePostIssueJWT(@Body() createUserDto: CreateUserDto, @Res() res: Response): Promise<any> {
         try {
             const readUserDto: ReadUserDto = await this.serviceInstance.findUserById(createUserDto);
-            console.log('readUserDto:', readUserDto);
-            const invalidPassword = await this.serviceInstance.authenticateUser(createUserDto.pw, readUserDto.password);
-            /*
-            if(invalidPassword) {
-                throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
-            }
-            */
-            const jwt = this.serviceInstance.issueJWT();
-            console.log('jwt:', jwt);
-            return { message: 'jwt should be returned.' };
+            await this.serviceInstance.authenticateUser(createUserDto.pw, readUserDto.password);
+            const jwt = await this.serviceInstance.issueJWT(readUserDto.id);
+            res.setHeader('Authorization', `Bearer ${jwt}`);
+            return res.json({ message: 'jwt', status: HttpStatus.OK});
         } catch(err) {
             throw new Error(err);
         }
