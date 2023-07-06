@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body,  HttpCode, HttpStatus, HttpException,  Req, Res  } from '@nestjs/common';
+import { Controller, Get, Post, Body,  HttpCode, HttpStatus, HttpException,  Req, Res, Render } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { UserService } from './user.service';
 
@@ -14,10 +14,7 @@ export class UserController {
     async handlePostNewUser(@Body() createUserDto: CreateUserDto): Promise<{ message: string }> {
         try {
             createUserDto = await this.serviceInstance.priorProcess(createUserDto);
-            const res = await this.serviceInstance.createNewUser(createUserDto);
-            if(res.affectedRows!==1) {
-                throw new HttpException('Failed to create a new account.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            await this.serviceInstance.createNewUser(createUserDto);
             return { message: 'Your account has been created.' }; 
         } catch(err) {
             throw new Error(err);
@@ -28,10 +25,12 @@ export class UserController {
     @HttpCode(HttpStatus.OK) // Set the HTTP status code to 200 okay.
     async handlePostIssueJWT(@Body() createUserDto: CreateUserDto, @Res() res: Response): Promise<any> {
         try {
+            console.log('this');
             const readUserDto: ReadUserDto = await this.serviceInstance.findUserById(createUserDto);
             await this.serviceInstance.authenticateUser(createUserDto.pw, readUserDto.password);
             const jwt = await this.serviceInstance.issueJWT(readUserDto.id);
-            res.setHeader('Authorization', `Bearer ${jwt}`);
+            console.log('jwt:', jwt);
+            res.cookie('jwt', jwt, {maxAge: 60*60 * 1000});
             return res.json({ message: 'jwt', status: HttpStatus.OK});
         } catch(err) {
             throw new Error(err);
@@ -39,13 +38,17 @@ export class UserController {
     }
     
     @Get()
-    handleGetUserPage(@Res() res: Response): void {
+    @Render('user/user')
+    handleGetUserPage(@Req() req: Request, @Res() res: Response): void {
         try {
-            const user = '';
-            // if(user) {
-
-            // }
-            res.sendFile('loginFormat.html', { root: 'public/user' });
+            let user = req.cookies.jwt;
+            console.log('user:', user);
+            if(user) {
+                console.log('1');
+            } else {
+                console.log('2');
+                res.sendFile('loginFormat.html', { root: 'public/user' });
+            }
         } catch(err) {
             throw new Error(err);
         }

@@ -5,6 +5,7 @@ import { ReadUserDto } from './dto/read-user.dto';
 import { NotFoundException } from '../shared/exceptions/custom.NotFoundException';
 import { config } from '../../config/config';
 import { MySQLRepository } from '../shared/mysql.repository';
+import { AuthService } from '../auth/auth.service';
 
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
@@ -12,10 +13,11 @@ import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class UserService {
 
-    constructor(private readonly repositoryInstance: MySQLRepository) {}
+    constructor(private readonly repositoryInstance: MySQLRepository, 
+                private readonly authService: AuthService
+    ) {}
 
     checkValidation(createUserDto: CreateUserDto) {
-        const isInvalidId = '';
         const fields: { [key: string]: string } = {
             id: 'ID',
             name: 'Name',
@@ -26,13 +28,12 @@ export class UserService {
         }
         for(const field of Object.keys(fields)) {
             if(!createUserDto[field] || createUserDto[field].trim().length===0) {
-                return `${fields[field]} is required.`;
+                throw new Error(`${fields[field]} is required.`);
             }
         }
         if(createUserDto.pw!==createUserDto.pwc) {
-            return `Password and password confirmation is not matched.`;
+            throw new Error(`Password and password confirmation is not matched.`);
         }
-        return isInvalidId;
     }
 
     async encryptPassword(password): Promise<string> {
@@ -42,31 +43,29 @@ export class UserService {
         return password;
     }
 
-    async checkDuplicatedId(createUserDto: CreateUserDto): Promise<number> {
+    async checkDuplicatedId(createUserDto: CreateUserDto) {
         const sql = `SELECT COUNT(id) AS count FROM Users WHERE id = ?`;
         const values = [ createUserDto.id ];
         const [res] = await this.repositoryInstance.executeQuery(sql, values);
-        return res.count;
+        if(res.count) {
+            throw new Error(`${createUserDto.id} is already taken.`);
+        }
     }
 
     async priorProcess(createUserDto: CreateUserDto): Promise<CreateUserDto> {
-        const invalidId = this.checkValidation(createUserDto);
-        if(invalidId) {
-            throw new Error(invalidId);
-        }
-        const duplicatedId = await this.checkDuplicatedId(createUserDto);
-        if(duplicatedId) {
-            throw new Error(`${createUserDto.id} is already taken.`);
-        }
+        this.checkValidation(createUserDto);
+        await this.checkDuplicatedId(createUserDto);
         createUserDto.pw = await this.encryptPassword(createUserDto.pw);
         return createUserDto;
     }
 
-    async createNewUser(createUserDto: CreateUserDto): Promise<any> {
+    async createNewUser(createUserDto: CreateUserDto) {
         const sql = `INSERT INTO Users (id, name, password, address, phone_number) VALUES (?);`;
         const values = [ [ createUserDto.id, createUserDto.name, createUserDto.pw, createUserDto.address, createUserDto.phone_number ] ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
-        return res;
+        if(res.affectedRows!==1) {
+            throw new HttpException('Failed to create a new account.', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     async findUserById(createUserDto: CreateUserDto): Promise<ReadUserDto> {
@@ -91,14 +90,8 @@ export class UserService {
     }
 
     async issueJWT(id): Promise<string> {
-        const payload = {
-            id
-        }
-        const token = await jwt.sign(
-            payload,
-            config.JWT.SECRET,
-            { expiresIn: '60m'}
-        ); 
+        const payload = { id };
+        const token = await this.authService.signToken(payload); 
         return token;
     }
 
