@@ -158,12 +158,7 @@ function signIn() {
         data: { id, pw },
         dataType: "json",
         success: function(data, textStatus, jqXHR) {
-            console.log('data:', data);
-            console.log('textStatus:', textStatus);
-            const authorizationHeader = jqXHR.getResponseHeader('Authorization');
-            console.log(authorizationHeader); // Print the Authorization header to the console
-            // alert(res.message);
-            // location.reload();
+            location.reload();
         },
         error: function(res) {
             alert('Invalid request.');
