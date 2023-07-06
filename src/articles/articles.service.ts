@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { MySQLRepository } from '../shared/mysql.repository';
 
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -122,6 +122,9 @@ export class ArticlesService {
         const update_date = post_date;
         const values = [ createArticleDto.title, createArticleDto.content, post_date, update_date, createArticleDto.author ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
+        if(res.affectedRows!==1) {
+            throw new HttpException('Failed to post the article.', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         return res;
     }
 
@@ -129,6 +132,9 @@ export class ArticlesService {
         const sql = `DELETE FROM Articles WHERE article_id = ?;`;
         const values = [ [ deleteArticleDto.id ] ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
+        if(res.affectedRows!==1) {
+            throw new HttpException('Failed to delete the article.', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         return res.affectedRows;
     }
 
@@ -137,6 +143,10 @@ export class ArticlesService {
         const update_date = this.getCurrentDate();
         const values = [ putArticleDto.title, putArticleDto.content, update_date, article_id ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
+        if(res.changedRows!==1) {
+            throw new HttpException('Failed to edit the article.', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         return res.changedRows;
     }
 
@@ -144,12 +154,18 @@ export class ArticlesService {
         const sql = `UPDATE Comments SET content = ? WHERE comment_id = ?;`;
         const values = [ putCommentDto.content, putCommentDto.comment_id ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
+        if(res.changedRows!==1) {
+            throw new HttpException('Failed to edit the article.', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         return res.changedRows;
     }
 
-    async confirmArticleAuthor(id, user): Promise<boolean> {
+    async confirmArticleAuthor(id, user) {
         const article = await this.getArticleById(id);
-        return article.author===user ? true : false;
+        const userNotMatch = article.author!==user ? true : false;
+        if(userNotMatch) {
+            throw new HttpException('You are not authorized to edit this article.', HttpStatus.FORBIDDEN);
+        }
     }
 
     async getMaxCommentOrder() {
@@ -172,6 +188,9 @@ export class ArticlesService {
         const comment_order = 1;
         const values = [ [ article_id, createCommentDto.author, time, depth, comment_order, group_num, createCommentDto.content ] ];
         const { insertId } = await this.repositoryInstance.executeQuery(sql, values);
+        if(insertId<=0) {
+            throw new HttpException('Failed to comment.', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         return insertId;
     }
 
@@ -186,6 +205,9 @@ export class ArticlesService {
         const sql = depth ? `DELETE FROM Comments WHERE comment_id = ?;` : `UPDATE Comments SET author = 'DELETED', author = 'DELETED', content = 'DELETED' WHERE comment_id = ?;`;
         const values = [ id ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
+        if(res.affectedRows!==1) {
+            throw new HttpException('Failed to delete the comment.', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         return res.affectedRows;
     }
 
@@ -194,6 +216,9 @@ export class ArticlesService {
         const values = [ id ];
         const getCommentDto: GetCommentDto = await this.repositoryInstance.executeQuery(sql, values);
         const userNotMatch = getCommentDto[0].author!==user ? true : false;
+        if(userNotMatch) {
+            throw new HttpException('You are not authorized to edit this comment.', HttpStatus.FORBIDDEN);
+        }
         return userNotMatch;
     }
 

@@ -25,9 +25,6 @@ export class ArticlesController {
         try {
             createArticleDto.author = 'one'; 
             const res = await this.serviceInstance.postArticle(createArticleDto);
-            if(res.affectedRows!==1) {
-                throw new HttpException('Failed to post the article.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
             return {
                 message: 'Article has been posted.',
                 id: res.insertId 
@@ -46,9 +43,6 @@ export class ArticlesController {
         try {
             createCommentDto.author = 'one';
             const insertId = await this.serviceInstance.postComment(id, createCommentDto);
-            if(insertId<=0) {
-                throw new HttpException('Failed to comment.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
             return {
                 message: 'Comment has been posted.'
             }
@@ -108,10 +102,7 @@ export class ArticlesController {
     async handleGetEditingArticleFormat(@Param('id') id, @Req() { query }: Request): Promise<{ article: GetArticleDto }> {
         try {
             const { user } = query;
-            const doesUserMatch = await this.serviceInstance.confirmArticleAuthor(id, user);
-            if(!doesUserMatch) {
-                throw new HttpException('You are not authorized to edit this article.', HttpStatus.FORBIDDEN);
-            }
+            await this.serviceInstance.confirmArticleAuthor(id, user);
             const article: GetArticleDto = await this.serviceInstance.getArticleById(id);
             return { article };
         } catch(err) {
@@ -127,10 +118,7 @@ export class ArticlesController {
     async handleGetAuthorizeCommentAuthor(@Param('id') id): Promise<{ message: string }> {
         try {
             const user = 'one';
-            const userNotMatch = await this.serviceInstance.confirmCommentAuthor(id, user);
-            if(userNotMatch) {
-                throw new HttpException('You are not authorized to edit this comment.', HttpStatus.FORBIDDEN);
-            }
+            await this.serviceInstance.confirmCommentAuthor(id, user);
             return { message: 'Authorized.' }
         } catch(err) {
             throw new Error(err);
@@ -143,10 +131,7 @@ export class ArticlesController {
     @Put(':id')
     async handlePutArticle(@Param('id') id, @Body() putArticleDto: PutArticleDto): Promise<{message: string}> {
         try {
-            const changedRows = await this.serviceInstance.putArticle(id, putArticleDto);
-            if(changedRows!==1) {
-                throw new HttpException('Failed to edit the article.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            await this.serviceInstance.putArticle(id, putArticleDto);
             return { message: 'Article has been updated.'};
         } catch(err) {
             throw new Error(err);
@@ -160,10 +145,7 @@ export class ArticlesController {
     async handlePutComment(@Param('id') id, @Body() putCommentDto: PutCommentDto): Promise<{message: string}> {
         try {
             putCommentDto.comment_id = id;
-            const changedRows = await this.serviceInstance.putComment(putCommentDto);
-            if(changedRows!==1) {
-                throw new HttpException('Failed to edit the article.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            await this.serviceInstance.putComment(putCommentDto);
             return { message: 'Article has been updated.'};
         } catch(err) {
             throw new Error(err);
@@ -177,10 +159,7 @@ export class ArticlesController {
     @HttpCode(HttpStatus.NO_CONTENT) // Set the HTTP status code to 204 No Content
     async handleDeleteArticle(@Body() deleteArticleDto: DeleteArticleDto): Promise<void> {
         try {
-            const affectedRows = await this.serviceInstance.deleteArticle(deleteArticleDto);
-            if(affectedRows!==1) {
-                throw new HttpException('Failed to delete the article.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            await this.serviceInstance.deleteArticle(deleteArticleDto);
         } catch(err) {
             throw new Error(err);
         }
@@ -193,10 +172,7 @@ export class ArticlesController {
     @HttpCode(HttpStatus.NO_CONTENT) // Set the HTTP status code to 204 No Content
     async handleDeleteComment(@Param('id') id, @Param('depth', ParseIntPipe) depth: number): Promise<{ message: string }> {
         try {
-            const affectedRows = await this.serviceInstance.deleteCommentById(id, depth);
-            if(affectedRows!==1) {
-                throw new HttpException('Failed to delete the comment.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            await this.serviceInstance.deleteCommentById(id, depth);
             return { message: 'Comment has been deleted.' }
         } catch(err) {
             throw new Error(err);
