@@ -12,75 +12,23 @@
             <a href="#">One</a>
             <a href="#">Two</a>
         </div>
+        </br></br>
 
-        <section>
-            <table class="sign-up">
+        <section class="content-section">
+            <h1>User Profile</h1>
+            <table class="user-profile">
+              <% for (const key in user) { %>
                 <tr>
                     <td>
-                        <h1>Create an nest-project account</h1>
+                        <a><strong><%= key %>:</strong></a>
                     </td>
-                </tr>
-                <tr>
                     <td>
-                        <input id="signUpId" placeholder="Enter ID"></input>
+                        <a><%= user[key] %></a>
                     </td>
                 </tr>
-                <tr>
-                    <td>
-                        <input id="signUpName" placeholder="Enter name"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input id="signUpAddress" placeholder="Enter address"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input id="signUpPhoneNumber" placeholder="Enter phone number"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input id="signUpPassword" placeholder="Enter password"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input id="signUpPasswordConfirmation" placeholder="Enter password confirmation"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <button type="button" onclick="createAccount()">Create Account</button>
-                    </td>
-                </tr>
+              <% } %>
             </table>
-        </section>
-
-        <section>
-            <table class="sign-up">
-                <tr>
-                    <td>
-                        <h1>Sign In</h1>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input id="signInId" placeholder="Enter ID"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input id="signInPassword" placeholder="Enter password"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <button type="button" onclick="signIn()">Sign In</button>
-                    </td>
-                </tr>
-            </table>
+        <button type="button" id="logOut" onclick="signOut()">Log out</button>
         </section>
         <script src="../public/javascript/script.js"></script>
     </body>
