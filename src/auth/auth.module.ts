@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthGuard } from './auth.guard';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 
 import { config } from '../../config/config';
@@ -9,7 +10,7 @@ import { config } from '../../config/config';
         secret: config.JWT.SECRET, 
         signOptions: { expiresIn: '1h' },
     })],
-    providers: [AuthService, JwtService], 
-    exports: [JwtService], 
+    providers: [AuthService, AuthGuard], 
+    exports: [JwtModule, AuthService, AuthGuard], 
 })
 export class AuthModule {}

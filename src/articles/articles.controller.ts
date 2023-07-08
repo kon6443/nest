@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Put, HttpCode, Req, Res, Param, ParseIntPipe, Body, HttpStatus, HttpException, Render } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Put, HttpCode, Req, Res, Param, ParseIntPipe, Body, HttpStatus, HttpException, Render, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ArticlesService } from './articles.service';
 
@@ -10,6 +10,8 @@ import { DeleteArticleDto } from './dto/delete-article.dto';
 import { GetCommentDto } from './dto/get-comment.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { PutCommentDto } from './dto/put-comment.dto';
+
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('articles')
 export class ArticlesController {
@@ -83,6 +85,7 @@ export class ArticlesController {
      */
     @Get(':id')
     @Render('articles/article') // /views/articles/article.ejs
+    @UseGuards(AuthGuard)
     async handleGetArticle(@Param('id') id): Promise<{ article: GetArticleDto, comments: GetCommentDto[] }> {
         try {
             const article:  GetArticleDto = await this.serviceInstance.getArticleById(id);
