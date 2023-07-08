@@ -68,10 +68,10 @@ export class UserService {
         }
     }
 
-    async findUserById(createUserDto: CreateUserDto): Promise<ReadUserDto> {
+    async findUserById(id): Promise<ReadUserDto> {
         try {
             const sql = `SELECT * FROM Users WHERE id = ?;`;
-            const values = [ createUserDto.id ];
+            const values = [ id ];
             const readUserDto: ReadUserDto = await this.repositoryInstance.executeQuery(sql, values);
             if(!readUserDto[0]) {
                 throw new NotFoundException('User not found.');
@@ -93,6 +93,13 @@ export class UserService {
         const payload = { id };
         const token = await this.authService.signToken(payload); 
         return token;
+    }
+
+    async getUserInfo(jwt): Promise<ReadUserDto> {
+        const { id } = await this.authService.verifyToken(jwt);
+        const readUserDto = await this.findUserById(id);
+        delete readUserDto.password;
+        return readUserDto;
     }
 
 }
