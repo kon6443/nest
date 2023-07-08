@@ -312,3 +312,23 @@ button {
     width: 90%;
     height: 2rem;
 }
+
+.user-profile {
+    border: solid 1px white;
+    margin-bottom: 3%;
+    width: 60%;
+}
+
+.user-profile td {
+    border: solid 1px white;
+    font-size: 2rem;
+}
+
+.user-profile td:nth-child(2) {
+    text-align: center;
+}
+
+#logOut {
+    margin-bottom: 2%;
+    width: 10%;
+}

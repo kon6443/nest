@@ -164,7 +164,20 @@ function signIn() {
             alert('Invalid request.');
         }
     });
+}
 
+function signOut() {
+    $.ajax({
+        url: `/user/logout`,
+        method: "DELETE",
+        dataType: "json",
+        success: function(data, textStatus, jqXHR) {
+            location.reload();
+        },
+        error: function(res) {
+            alert('Invalid request.');
+        }
+    });
 }
 
 $("#signUpPasswordConfirmation").on("keyup", function () {
