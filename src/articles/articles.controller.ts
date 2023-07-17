@@ -149,7 +149,7 @@ export class ArticlesController {
         try {
             putCommentDto.comment_id = id;
             await this.serviceInstance.putComment(putCommentDto);
-            return { message: 'Article has been updated.'};
+            return { message: 'Comment has been updated.'};
         } catch(err) {
             throw new Error(err);
         }
