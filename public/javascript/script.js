@@ -180,6 +180,7 @@ function signOut() {
     });
 }
 
+
 $("#signUpPasswordConfirmation").on("keyup", function () {
     if(window.event.keyCode==13 && $(this).val()!=""){
         createAccount();
@@ -191,3 +192,4 @@ $("#signInPassword").on("keyup", function () {
         signIn();
     }
 });
+

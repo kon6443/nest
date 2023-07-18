@@ -19,6 +19,7 @@ a {
     width: 94%;
     margin-left: auto;
     margin-right: auto;
+    border-radius: 10px;
 }
 
 .top-menu a {
@@ -49,6 +50,7 @@ a {
     height: 100%;
     margin-left: auto;
     margin-right: auto;
+    border-radius: 10px;
   /*
   height: 100vh;
   */
@@ -332,3 +334,53 @@ button {
     margin-bottom: 2%;
     width: 10%;
 }
+
+.profile-button {
+    border: solid 1px white;
+    width: 60%;
+}
+
+.profile-button tr {
+    display: flex;
+    justify-content: space-between;
+    display: grid;
+    grid-template-columns: auto 1fr auto; /* Define three equal columns */
+    justify-items: start; /* Align items to the start (left) */
+}
+
+.profile-button td {
+    border: solid 1px white;
+}
+
+.chat {
+    width: 80%;
+    margin-bottom: 2%;
+}
+
+.chat tr {
+    width: 100%;
+}
+
+#chat-content {
+    border: 1px solid #000;
+    border-radius: 10px;
+    font-size: 110%;
+    width: 100%;
+    height: 30em;
+    margin-bottom: 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+#chat-type {
+    height: 3em;
+    width: 99%;
+    border-radius: 4px;
+    font-size: 100%;
+}
+
+#chat-button {
+    height: 3em;
+    font-size: 100%;
+}
+
