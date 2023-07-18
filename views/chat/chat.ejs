@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+    <html>
+        <head>
+            <title>nest-project</title>
+            <link rel="stylesheet" href="../public/css/styles.css">
+        </head>
+    <body>
+        <div class="top-menu">
+            <a href="/">Home</a>
+            <a href="/articles">Forum</a>
+            <a href="/chat">Chat</a>
+            <a href="#">My page</a>
+        </div>
+        <h1><%= user.id %></h1>
+
+        <section class="content-section">
+            <h1><%= user.id %></h1>
+
+            <table class="chat">
+                <tr>
+                    <td colspan="2" id="chat-content">
+                        asdf
+                    </td>
+                </tr>
+                <tr>
+                    <td width="70%">
+                        <input type="text" id="chat-type">
+                    </td>
+                    <td width="20%">
+                        <button type="button" id="chat-button" onclick="sendMsg()">Send</button>
+                    </td>
+                </tr>
+            </table>
+        </section>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="../public/javascript/socket_io.js"></script>
+    </body>
+</html>
+
