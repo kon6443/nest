@@ -9,8 +9,8 @@
         <div class="top-menu">
             <a href="/">Home</a>
             <a href="/articles">Forum</a>
-            <a href="#">One</a>
-            <a href="#">Two</a>
+            <a href="/chat">Chat</a>
+            <a href="/user">My page</a>
         </div>
         </br></br>
 
@@ -29,6 +29,19 @@
               <% } %>
             </table>
         <button type="button" id="logOut" onclick="signOut()">Log out</button>
+        <table class="profile-button">
+            <tr>
+                <td>
+                    <button type="button" onclick="signOut()">Log out</button>
+                </td>
+                <td>
+                    <button type="button" onclick="signOut()">Edit profile</button>
+                </td>
+                <td>
+                    <button type="button" onclick="withdrawMembership()">Withdraw Membership</button>
+                </td>
+            <tr>
+        </table>
         </section>
         <script src="../public/javascript/script.js"></script>
     </body>
