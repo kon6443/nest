@@ -1,10 +1,13 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import { ChatService } from '../chat/chat.service';
+
 @WebSocketGateway({ namespace: '/chat' })
 export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     server: Server;
+    constructor(private readonly chatService: ChatService) {}
 
     // WebSocket event handlers and business logic
     
@@ -27,7 +30,13 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
         // console.log('message:', message);
         console.log(`${client.id}: ${message}`);
         // this.server.emit('chat', message);
+        
         this.server.emit('chat', { id: client.id, message: message });
+
+        if(this.chatService.isCommand(message)) {
+            const chatBotMessage = this.chatService.executeCommand(message);
+            this.server.emit('chat', { id: 'chatBot', message: chatBotMessage });
+        }
     }
 
 }
