@@ -51,10 +51,6 @@ a {
     margin-left: auto;
     margin-right: auto;
     border-radius: 10px;
-  /*
-  height: 100vh;
-  */
-
 }
 
 .item-container {
@@ -352,8 +348,40 @@ button {
     border: solid 1px white;
 }
 
+.chat-main {
+    /** flex property enables items to be aligned along with x axis. 
+     * Each item occupies its own width length. */
+    display: flex;
+
+    /* justify-content property aligns the items to be in the middle horizontally.
+     */
+
+    /* align-items aligns the items to be in the middle vertically.
+     */
+    align-items: center;
+    /* flex-direction specifies the direction of the flexible items.
+     */
+    flex-direction: row;
+    background-color: #333;
+    width: 94%;
+    height: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+}
+
+
 .chat {
-    width: 80%;
+    width: 70%;
+    border: solid 1px yellow;
+    border-radius: 10px;
+    margin-top: 2%;
+    margin-bottom: 2%;
+    margin-left: 4%;
+}
+
+#chat-content {
+    width: 100%;
     height: 60vh;
     border: 1px solid white;
     font-size: 110%;
@@ -368,27 +396,50 @@ button {
 .chat-message {
     border-radius: 10px;
     border: solid 1px white;
-    background: black;
-    width: 40%;
-    height: 10%;
+    padding: 10px;
+    max-width: 40%;
+    width: fit-content;
     font-size: 120%;
-    margin-bottom: 1%;
-    overflow-y: visible;
+    margin-top: 1%;
+    margin-bottom: 2%;
+    margin-left: 2%;
+    margin-right: 2%;
 }
 
 .chat-message.sent {
     margin-left: auto;
+    background: yellow;
+    color: black;
 }
 
 .chat-message.received {
     margin-right: auto;
+    background: black;
+}
+
+.chat-user-list {
+    border-radius: 10px;
+    width: 20%;
+    border: solid 1px white;
+    height: 60vh;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.chat-user {
+    border: solid 1px white;
+    border-radius: 10px;
+    width: 100%;
 }
 
 #chat-type {
     height: 3em;
-    width: 99%;
-    border-radius: 4px;
+    width: 96%;
+    border-radius: 10px;
+    margin-left: 1%;
+    padding: 5px;
     font-size: 100%;
+    overflow-y: auto;
 }
 
 #chat-button {
