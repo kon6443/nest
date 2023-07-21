@@ -1,17 +1,20 @@
 import { Injectable } from '@nestjs/common';
 
+import { MySQLRepository } from '../shared/mysql.repository';
+
 @Injectable()
 export class ChatService {
 
-    private readonly execute = new Map<string, () => string>; 
+    private readonly execute = new Map<string, (string?) => Promise<any>|string>; 
 
-    constructor() {
-        this.execute = new Map<string, () => string>;
+    constructor(private readonly repositoryInstance: MySQLRepository) {
+        this.execute = new Map<string, (string?) => Promise<any>|string>;
         this.initCommand();
     }
 
     private initCommand() {
         this.execute.set('명단', this.getAllList);
+        this.execute.set('생성', this.createTeam);
         this.execute.set('탈퇴', this.leaveTeam);
         this.execute.set('검색', this.searchById);
         this.execute.set('수정', this.editList);
@@ -25,19 +28,49 @@ export class ChatService {
         return false;
     }
 
-    getAllList() {
-        return 'lists';
+    organizeList(l) {
+        let lists = [];
+        for(let i=0;l.length;i++) {
+            lists.push();
+        }
+        return l;
     }
 
-    leaveTeam() {
+    private getAllList = async (): Promise<any> => {
+        const sql = `SELECT * FROM PARTIES;`;
+        let list = await this.repositoryInstance.executeQuery(sql);
+        // list = this.organizeList(list);
+        JSON.stringify(list);
+        console.log('list:', list[0]);
+        for(let i=0;list.length;i++) {
+            console.log(list[i].id);
+            console.log(list[i].title);
+            console.log(list[i].limit);
+        }
+        return list[0];
+    }
+
+    async createTeam(message) {
+        console.log('createTeam:', message);
+        const sql = `INSERT INTO Parties (id, title) VALUES ((SELECT MIN(p1.id+1) FROM Parties p1 LEFT JOIN Parties p2 ON p1.id+1 = p2.id WHERE p2.id IS NULL), ?);`;
+        // let title = title ?? 'prac';
+        // let limit = limit ?? '';
+        let title = 'prac'; 
+        let time = '';
+        let limit;
+        const values = [title];
+        return await this.repositoryInstance.executeQuery(sql, values);
+    }
+
+    async leaveTeam() {
         return 'leave team';
     }
 
-    searchById() {
+    async searchById() {
         return 'search by id';
     }
 
-    editList() {
+    async editList() {
         return 'edit list';
     }
 
@@ -46,14 +79,17 @@ export class ChatService {
             • 전체 명단 보기 
             !명단 
             
+            • 팀 생성 
+            !생성 명단_이름
+
             • 팀 탈퇴
-            !탈퇴
+            !탈퇴 명단_번호 멤버_번호
 
             • 등록된 팀 검색
             !검색
 
             • 수정
-            !수정
+            !수정 명단_번호 멤버_번호 아이디
         `;
     }
 
@@ -68,9 +104,9 @@ export class ChatService {
         return cmd;
     }
 
-    executeCommand(message) {
+    async executeCommand(message) {
         const cmd = this.analyzeCommand(message);
-        const chatBotMessage = this.execute.get(cmd)();
+        const chatBotMessage = await this.execute.get(cmd)(message);
         return chatBotMessage;
     }
 

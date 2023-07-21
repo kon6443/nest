@@ -25,7 +25,7 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
     }
 
     @SubscribeMessage('chat')
-    handleMessage(client: Socket, message: string) {
+    async handleMessage(client: Socket, message: string) {
         // console.log('client:', client.id);
         // console.log('message:', message);
         console.log(`${client.id}: ${message}`);
@@ -34,7 +34,7 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
         this.server.emit('chat', { id: client.id, message: message });
 
         if(this.chatService.isCommand(message)) {
-            const chatBotMessage = this.chatService.executeCommand(message);
+            const chatBotMessage = await this.chatService.executeCommand(message);
             this.server.emit('chat', { id: 'chatBot', message: chatBotMessage });
         }
     }
