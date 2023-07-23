@@ -34,7 +34,7 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
         this.server.emit('chat', { id: client.id, message: message });
 
         if(this.chatService.isCommand(message)) {
-            const chatBotMessage = await this.chatService.executeCommand(message);
+            const chatBotMessage = await this.chatService.executeCommand(message, 'two');
             this.server.emit('chat', { id: 'chatBot', message: chatBotMessage });
         }
     }
