@@ -12,20 +12,27 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { PutCommentDto } from './dto/put-comment.dto';
 
 import { AuthGuard } from '../auth/auth.guard';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('articles')
 export class ArticlesController {
 
-    constructor(private readonly serviceInstance: ArticlesService) {}
+    constructor( 
+        private readonly serviceInstance: ArticlesService,
+        private readonly authService: AuthService,
+    ) {}
 
     /**
      * Save an article.
      */
     @Post('article')
+    @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
-    async handlePostArticle(@Body() createArticleDto: CreateArticleDto): Promise<{message: string, id: number}> {
+    async handlePostArticle(@Req() req: Request, @Body() createArticleDto: CreateArticleDto): Promise<{message: string, id: number}> {
         try {
-            createArticleDto.author = 'one'; 
+            const jwt = req.cookies['jwt'];
+            const payload = await this.authService.verifyToken(jwt);
+            createArticleDto.author = payload.id; 
             const res = await this.serviceInstance.postArticle(createArticleDto);
             return {
                 message: 'Article has been posted.',
@@ -40,10 +47,13 @@ export class ArticlesController {
      * Post a comment.
      */
     @Post(':id')
+    @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.CREATED) // Set the HTTP status code to 201 Created
-    async handlePostComment(@Param('id') id, @Body() createCommentDto: CreateCommentDto): Promise<{ message: string }> {
+    async handlePostComment(@Req() req: Request, @Param('id') id, @Body() createCommentDto: CreateCommentDto): Promise<{ message: string }> {
         try {
-            createCommentDto.author = 'one';
+            const jwt = req.cookies['jwt'];
+            const payload = await this.authService.verifyToken(jwt);
+            createCommentDto.author = payload.id;
             const insertId = await this.serviceInstance.postComment(id, createCommentDto);
             return {
                 message: 'Comment has been posted.'
@@ -72,6 +82,7 @@ export class ArticlesController {
      * Display article writing format.
      */
     @Get('article-format')
+    @UseGuards(AuthGuard)
     handleGetArticleFormat(@Res() res: Response): void {
         try {
             res.sendFile('articleFormat.html', { root: 'public/articles' });
@@ -101,13 +112,20 @@ export class ArticlesController {
      */
     @Get(':id/edit')
     @HttpCode(HttpStatus.OK) // Set the response status code to 200 OK
+    @UseGuards(AuthGuard)
     @Render('articles/editingArticleFormat') // /views/articles/editingArticleFormat.ejs
-    async handleGetEditingArticleFormat(@Param('id') id, @Req() { query }: Request): Promise<{ article: GetArticleDto }> {
+    async handleGetEditingArticleFormat(@Param('id') id, @Req() req: Request, @Res() res: Response): Promise<{ article: GetArticleDto }> {
         try {
-            const { user } = query;
-            await this.serviceInstance.confirmArticleAuthor(id, user);
-            const article: GetArticleDto = await this.serviceInstance.getArticleById(id);
-            return { article };
+            const { user } = req.query;
+            const jwt = req.cookies['jwt'];
+            const payload = await this.authService.verifyToken(jwt);
+            if(payload.id===user) {
+                await this.serviceInstance.confirmArticleAuthor(id, user);
+                const article: GetArticleDto = await this.serviceInstance.getArticleById(id);
+                return { article };
+            } else {
+                res.status(HttpStatus.UNAUTHORIZED).send({ message: `Unauthorized:: User ID mismatch.` });
+            }
         } catch(err) {
             console.error(err);
             throw new Error(err);
