@@ -18,10 +18,6 @@ export class ChatService {
         return false;
     }
 
-    getHeader(o) {
-        return `[${o.id}] ${o.title} (n/${o.limit})\n`;
-    }
-
     manipulateObjectToList(users, limit) {
         let userCount = users[0].order ? users.length : 0;
         let header = `[${users[0].id}] ${users[0].title} (${userCount}/${limit})\n`;
@@ -168,7 +164,7 @@ export class ChatService {
             !삭제 3팀
 
             • 팀에서 탈퇴하기
-            // !탈퇴 3팀 2번
+            !탈퇴 3팀 2번
 
             • 도움말
             !도움말
