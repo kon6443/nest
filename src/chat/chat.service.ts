@@ -119,13 +119,13 @@ export class ChatService {
 
     async searchById(userId) {
         try {
-            const sql = `SELECT Parties.id, PartyMembers.userId, Parties.title, PartyMembers.order FROM Parties LEFT JOIN PartyMembers ON Parties.id = PartyMembers.id WHERE PartyMembers.userId = ? ORDER BY Parties.id;`;
+            const sql = `SELECT PartyMembers.userId, PartyMembers.order, PartyMembers.partyId, Parties.title FROM PartyMembers LEFT JOIN Parties ON PartyMembers.partyId = Parties.id WHERE PartyMembers.userId = ? ORDER BY PartyMembers.partyId;`;
             const values = [ userId ];
             const res = await this.repositoryInstance.executeQuery(sql, values);
             let list = '<가입된 명단 목록>\n'
             list = list.concat('━━━━━༻❁༺━━━━━\n');
             for(let i=0;i<res.length;i++) {
-                list = list.concat(`[${res[i].id}] ${res[i].title}\n`);
+                list = list.concat(`[${res[i].partyId}] ${res[i].title}\n`);
                 list = list.concat(`${res[i].order}번: ${res[i].userId}\n\n`);
             }
             return list;
