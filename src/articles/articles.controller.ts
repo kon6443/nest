@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Put, HttpCode, Req, Res, Param, ParseIntPipe, Body, HttpStatus, HttpException, Render, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Put, HttpCode, Req, Res, Param, ParseIntPipe, Body, HttpStatus, HttpException, Render, UseGuards, Inject } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ArticlesService } from './articles.service';
 
@@ -119,13 +119,9 @@ export class ArticlesController {
             const { user } = req.query;
             const jwt = req.cookies['jwt'];
             const payload = await this.authService.verifyToken(jwt);
-            if(payload.id===user) {
-                await this.serviceInstance.confirmArticleAuthor(id, user);
-                const article: GetArticleDto = await this.serviceInstance.getArticleById(id);
-                return { article };
-            } else {
-                res.status(HttpStatus.UNAUTHORIZED).send({ message: `Unauthorized:: User ID mismatch.` });
-            }
+            await this.serviceInstance.confirmArticleAuthor(id, payload.id);
+            const article: GetArticleDto = await this.serviceInstance.getArticleById(id);
+            return { article };
         } catch(err) {
             console.error(err);
             throw new Error(err);
@@ -135,11 +131,13 @@ export class ArticlesController {
     /* Authorize if user and comment's author matches.
      */
     @Get('comments/:id')
+    @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.OK)
-    async handleGetAuthorizeCommentAuthor(@Param('id') id): Promise<{ message: string }> {
+    async handleGetAuthorizeCommentAuthor(@Req() req: Request, @Param('id') id): Promise<{ message: string }> {
         try {
-            const user = 'one';
-            await this.serviceInstance.confirmCommentAuthor(id, user);
+            const jwt = req.cookies['jwt'];
+            const payload = await this.authService.verifyToken(jwt);
+            await this.serviceInstance.confirmCommentAuthor(id, payload.id);
             return { message: 'Authorized.' }
         } catch(err) {
             throw new Error(err);
@@ -178,9 +176,12 @@ export class ArticlesController {
      */
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT) // Set the HTTP status code to 204 No Content
-    async handleDeleteArticle(@Body() deleteArticleDto: DeleteArticleDto): Promise<void> {
+    async handleDeleteArticle(@Req() req: Request, @Param('id') id): Promise<void> {
         try {
-            await this.serviceInstance.deleteArticle(deleteArticleDto);
+            const jwt = req.cookies['jwt'];
+            const payload = await this.authService.verifyToken(jwt);
+            await this.serviceInstance.confirmArticleAuthor(id, payload.id);
+            await this.serviceInstance.deleteArticle(id);
         } catch(err) {
             throw new Error(err);
         }

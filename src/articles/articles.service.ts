@@ -1,4 +1,4 @@
-import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
+import { Injectable, HttpStatus, HttpException, UnauthorizedException } from '@nestjs/common';
 import { MySQLRepository } from '../shared/mysql.repository';
 
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -128,9 +128,9 @@ export class ArticlesService {
         return res;
     }
 
-    async deleteArticle(deleteArticleDto: DeleteArticleDto): Promise<number> {
+    async deleteArticle(id): Promise<number> {
         const sql = `DELETE FROM Articles WHERE article_id = ?;`;
-        const values = [ [ deleteArticleDto.id ] ];
+        const values = [ [ id ] ];
         const res = await this.repositoryInstance.executeQuery(sql, values);
         if(res.affectedRows!==1) {
             throw new HttpException('Failed to delete the article.', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -164,11 +164,8 @@ export class ArticlesService {
         const article = await this.getArticleById(id);
         const userNotMatch = article.author!==user ? true : false;
         if(userNotMatch) {
-            throw new HttpException('You are not authorized to edit this article.', HttpStatus.FORBIDDEN);
+            throw new UnauthorizedException('Unauthorized user.');
         }
-    }
-
-    async getMaxCommentOrder() {
     }
 
     async getNewGroupNum(article_id): Promise<number> {
