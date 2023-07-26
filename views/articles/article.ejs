@@ -8,9 +8,9 @@
     <body>
         <div class="top-menu">
             <a href="/">Home</a>
-            <a href="/articles">Articles</a>
-            <a href="#">Item 2</a>
-            <a href="#">Item 3</a>
+            <a href="/articles">Forum</a>
+            <a href="/chat">Chat</a>
+            <a href="/user">My page</a>
         </div>
         </br></br>
 
@@ -93,7 +93,7 @@
                         <button type="button" id="back" onclick="location.href='/articles'">Back</button>
                     </td>
                     <td class="article-button-column">
-                <button type="button" id="edit" onclick="location.href=`/articles/${<%= article.article_id %>}/edit?user=one`">Edit</button>
+                        <button type="button" id="edit" onclick="location.href=`/articles/${<%= article.article_id %>}/edit`">Edit</button>
                     </td>
                     <td class="article-button-column">
                         <button type="button" id="delete" onclick="deleteArticle('<%= article.article_id %>', '<%= article.author %>')">Delete</button>
