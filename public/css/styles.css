@@ -372,7 +372,6 @@ button {
 
 .chat {
     width: 70%;
-    border: solid 1px yellow;
     border-radius: 10px;
     margin-top: 2%;
     margin-bottom: 2%;
@@ -405,13 +404,13 @@ button {
     margin-right: 2%;
 }
 
-.chat-message.sent {
+.chat-message.mySelf {
     margin-left: auto;
     background: yellow;
     color: black;
 }
 
-.chat-message.received {
+.chat-message.other {
     margin-right: auto;
     background: black;
 }

@@ -1,18 +1,4 @@
 
-// function signOut() {
-//     $.ajax({
-//         url: `/user/logout`,
-//         method: "DELETE",
-//         dataType: "json",
-//         success: function(data, textStatus, jqXHR) {
-//             location.reload();
-//         },
-//         error: function(res) {
-//             alert('Invalid request.');
-//         }
-//     });
-// }
-
 let socket = io.connect('/chat', {
     path: '/socket.io',
     transports: ['websocket'],
@@ -24,14 +10,11 @@ socket.on('chat', function (data) {
     const chatContentElement = document.getElementById('chat-content');
 
     let text = document.createElement('div');
-    text.innerHTML = data.announcement ? data.announcement : `${data.id}: ${data.message}`;
+    text.innerHTML = data.announcement ? data.announcement : `${data.userId}: ${data.message}`;
     text.innerHTML = text.textContent.replace(/\n/g, '<br>');
 
-    if(data.id===socket.id) {
-        text.classList.add('chat-message', 'sent');
-    } else {
-        text.classList.add('chat-message', 'received');
-    }
+    const sentBy = data.id===socket.id ? 'mySelf' : 'other';
+    text.classList.add('chat-message', sentBy);
 
     // Append the row to the chat-content element
     chatContentElement.appendChild(text);
@@ -39,11 +22,14 @@ socket.on('chat', function (data) {
     chatContentElement.scrollTop = chatContentElement.scrollHeight;
 });
 
-
-function sendMsg() {
+function sendMsg(userId) {
 	const message = document.getElementById('chat-type').value;
+    const payload = {
+        userId,
+        message
+    };
     // socket.emit() method sends a message to the server.
-    socket.emit('chat', message);
+    socket.emit('chat', payload);
 }
 
 document.getElementById('chat-type').addEventListener('keypress', function(e) {
@@ -53,7 +39,7 @@ document.getElementById('chat-type').addEventListener('keypress', function(e) {
         return ;
     }
     if(e.keyCode==13 && value!=='') {
-        sendMsg();
+        document.getElementById('chat-button').click();
     }
 })
 

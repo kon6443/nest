@@ -45,19 +45,20 @@ function putArticle(article_id) {
 }
 
 
-function deleteArticle(article_id, author) {
+function deleteArticle(article_id) {
     $.ajax({
         url: `/articles/${article_id}`,
         method: "DELETE",
-        data: { id: article_id, author },
+        data: { },
         dataType: "json",
-        success: function(res) {
+    })
+        .done(function (data) {
             window.location.href = '/articles';
-        },
-        error: function(res) {
-            alert(res);
-        }
-    });
+        })
+        .fail(function (jqXHR) {
+            const errorMessage = JSON.parse(jqXHR.responseText).message;
+            alert(errorMessage);
+        });
 }
 
 function postComment(article_id) {
