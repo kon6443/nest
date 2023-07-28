@@ -179,37 +179,28 @@ export class ChatService {
             return { cmd: this.wrongCommandAlert };
         }
         cmd = cmd[0].substr(1);
+
+        const teamPattern = /([0-9]+)팀/;
+        const teamMatch = message.match(teamPattern);
+        const partyId = teamMatch ? teamMatch[1] : null;
+
+        const orderPattern = /([0-9]+)번/;
+        const orderMatch = message.match(orderPattern);
+        const order = orderMatch ? orderMatch[1] : null;
+
         let title = '';
-        let partyId;
-        let order;
-        let limit;
-        let userId;
-
-        let teamPattern = /([0-9]+)팀/;
-        let teamMatch = message.match(teamPattern);
-        if(teamMatch) {
-            partyId = teamMatch[1];
-        }
-
-        let orderPattern = /([0-9]+)번/;
-        let orderMatch = message.match(orderPattern);
-        if(orderMatch) {
-            order = orderMatch[1];
-        }
+        let limit = null;
+        let userId = null;
 
         // This switch statement validates if user has provided arguments properly regarding to their request.
         switch(cmd) {
             case '생성': {
-                const length = message.length;
-                if(length<=4) {
-                    return { cmd: this.wrongCommandAlert};
-                }
                 // Find digits at the end.
-                let limitPattern = /최대인원설정:\s*\d+명$/;
-                const match = message.match(limitPattern);
-                if(match) {
-                    limit = match[1];
-                    title = message.substr(4, length-4-match[0].length-1);
+                const limitPattern = /최대인원설정:\s*\d+명$/;
+                const limitMatch = message.match(limitPattern);
+                if(limitMatch) {
+                    limit = parseInt(limitMatch[1],10);
+                    title = message.replace(limitPattern, '').trim().substr(4);
                 } else {
                     title = message.substr(4);
                 }
@@ -227,7 +218,7 @@ export class ChatService {
                     return { cmd: this.wrongCommandAlert};
                 }
             }
-            case '탈퇴'||'검색': {
+            case '탈퇴': {
                 if(!partyId || !order) {
                     return { cmd: this.wrongCommandAlert};
                 }
@@ -248,29 +239,24 @@ export class ChatService {
             }
             case '생성': {
                 return await this.createTeam(cmdObject.title, cmdObject.limit);
-                break;
             }
             case '삭제': {
                 return await this.deleteTeam(cmdObject.partyId);
             }
             case '가입': {
                 return await this.insertMember(cmdObject.partyId, cmdObject.order, user_id);
-                break;
             }
             case '검색': {
                 return await this.searchById(cmdObject.userId);
-                break;
             }
             case '탈퇴': {
                 return await this.leaveTeam(cmdObject.partyId, cmdObject.order);
-                break;
             }
             case '도움말': {
                 return this.getTutorial();
             }
-            default: {
+            default: 
                 return cmdObject.cmd;
-            }
         }
     }
 
