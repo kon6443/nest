@@ -14,7 +14,8 @@ export class AuthGuard implements CanActivate {
         const jwt = req.cookies.jwt;
         if(!jwt) {
             throw new UnauthorizedException('Missing JWT token.');
+        } else {
+            return true;
         }
-        return true;
     }
 }

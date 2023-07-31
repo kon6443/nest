@@ -10,7 +10,11 @@ export class AuthService {
     }
 
     async verifyToken(jwt): Promise<any> {
-        return await this.jwtService.verifyAsync(jwt);
+        try {
+            return await this.jwtService.verifyAsync(jwt);
+        } catch(err) {
+            throw new Error('Invalid JWT');
+        }
     }
 
 }
