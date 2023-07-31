@@ -19,6 +19,7 @@ a {
     width: 94%;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 1%;
     border-radius: 10px;
 }
 
@@ -373,8 +374,6 @@ button {
 .chat {
     width: 70%;
     border-radius: 10px;
-    margin-top: 2%;
-    margin-bottom: 2%;
     margin-left: 4%;
 }
 
@@ -383,51 +382,95 @@ button {
     height: 60vh;
     border: 1px solid white;
     font-size: 110%;
-    margin-bottom: 1%;
     border-radius: 10px;
-    text-align: left;
     table-layout: fixed;
     overflow-y: scroll;
     position: relative;
+}
+
+.chatElement {
+    max-width: 60%;
+    display: flex;
+    flex-direction: column;
+    /*
+    width: fit-content;
+    */
+    margin-left: 2%;
+    margin-right: 4%;
+    margin-top: 1%;
+    margin-bottom: 2%;
+}
+
+.left {
+    margin-right: auto;
+}
+
+.right {
+    margin-left: auto;
+    margin-right: 2%;
+}
+
+.chatElement.left .chat-message {
+    background: black;
+    color: white;
+}
+
+.chatElement.right .chat-message {
+    background: yellow;
+    color: black;
+    margin-left: auto;
+}
+
+.chatElement.right .chat-name {
+    margin-left: auto;
+}
+
+.chat-name {
+    color: white;
+    margin-right: 1%;
 }
 
 .chat-message {
     border-radius: 10px;
     border: solid 1px white;
     padding: 10px;
-    max-width: 40%;
+    max-width: 60%;
     width: fit-content;
     font-size: 120%;
-    margin-top: 1%;
-    margin-bottom: 2%;
-    margin-left: 2%;
-    margin-right: 2%;
+    margin-top: 2%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
-.chat-message.mySelf {
+.user {
+    width: 20%;
+    border-radius: 10px;
+    height: 75vh;
     margin-left: auto;
-    background: yellow;
-    color: black;
-}
-
-.chat-message.other {
     margin-right: auto;
-    background: black;
+    margin-bottom: 2%;
 }
 
 .chat-user-list {
     border-radius: 10px;
-    width: 20%;
+    width: 88%;
     border: solid 1px white;
     height: 60vh;
     margin-left: auto;
     margin-right: auto;
+    padding: 5%;
+    overflow-y: scroll;
 }
 
 .chat-user {
     border: solid 1px white;
     border-radius: 10px;
     width: 100%;
+    height: 9%;
+    font-size: 120%;
+    margin-bottom: 3%;
+    box-sizing: border-box;
+    padding: 10px;
 }
 
 #chat-type {
@@ -441,7 +484,10 @@ button {
 }
 
 #chat-button {
+    /*
     height: 3em;
+    */
+    height: 5vh;
     font-size: 100%;
 }
 

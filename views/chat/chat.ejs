@@ -12,16 +12,17 @@
             <a href="/user">My page</a>
         </div>
 
-        <h1><%= user.id %></h1>
         <section class="chat-main" >
             <div class="chat">
+                <div style="text-align: center;">
+                    <h1><%= user.id %>'s messages</h1>
+                </div>
                 <div id="chat-content">
                 </div>
                 <table width="100%" class="chat-bottom">
                     <tr>
                         <td width="70%">
-                            <textarea id="chat-type">
-                            </textarea>
+                            <textarea id="chat-type"></textarea>
                         </td>
                         <td width="20%">
                             <button type="button" id="chat-button" onclick="sendMsg('<%= user.id %>')" >Send</button>
@@ -30,22 +31,15 @@
                 </table>
             </div>
 
-            <table class="chat-user-list">
-                <tr style="width: 100%;">
-                    <td style="width: 100%;">
-                        <div class="chat-user">
-                            a
-                        </div>
-                    <td>
-                <tr>
-                <tr>
-                    <td>
-                        <div class="chat-user">
-                            b
-                        </div>
-                    <td>
-                <tr>
-            </table>
+            <div class="user">
+                <div style="text-align: center;">
+                    <h1>Participants</h1>
+                </div>
+                <div>
+                    <div class="chat-user-list" id="chat-user-list">
+                    </div>
+                </div>
+            </div>
         </section>
         
         <script src="/socket.io/socket.io.js"></script>
