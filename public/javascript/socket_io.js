@@ -4,22 +4,49 @@ let socket = io.connect('/chat', {
     transports: ['websocket'],
 });
 
-// receiving a message
-socket.on('chat', function (data) {
-    // Get the chat-content element
+function createChatMessage(data, chatPosition) {
+    // Creating a name div
+    const userNameDiv = document.createElement('div');
+    userNameDiv.innerHTML = data.userId;
+    userNameDiv.classList.add('chat-name');
+
+    // Creating a message div.
+    const messageDiv = document.createElement('div');
+    messageDiv.innerHTML = data.message;
+    messageDiv.innerHTML = messageDiv.textContent.replace(/\n/g, '<br>');
+    messageDiv.classList.add('chat-message');
+
+    // Creating a parent div and appending above two child divs.
+    const chatDiv = document.createElement('div');
+    chatDiv.appendChild(userNameDiv);
+    chatDiv.appendChild(messageDiv);
+    chatDiv.classList.add('chatElement', chatPosition);
+
     const chatContentElement = document.getElementById('chat-content');
-
-    let text = document.createElement('div');
-    text.innerHTML = data.announcement ? data.announcement : `${data.userId}: ${data.message}`;
-    text.innerHTML = text.textContent.replace(/\n/g, '<br>');
-
-    const sentBy = data.id===socket.id ? 'mySelf' : 'other';
-    text.classList.add('chat-message', sentBy);
-
-    // Append the row to the chat-content element
-    chatContentElement.appendChild(text);
+    chatContentElement.appendChild(chatDiv);
     document.getElementById('chat-type').value = '';
     chatContentElement.scrollTop = chatContentElement.scrollHeight;
+    return chatDiv;
+}
+
+socket.on('chat', function (data) {
+    const chatPosition = data.id===socket.id ? 'right' : 'left';
+    createChatMessage(data, chatPosition);
+});
+
+socket.on('chat-bot', function (data) {
+    createChatMessage(data, 'left');
+});
+
+socket.on('user-status', function (data) {
+    const userList = document.getElementById('chat-user-list');
+    userList.innerHTML = '';
+    for(let i=0;i<data['activeUsers'].length;i++) {
+        let user = document.createElement('div');
+        user.innerHTML = `🟢 ${data['activeUsers'][i][1]}`;
+        user.classList.add('chat-user');
+        userList.appendChild(user);
+    }
 });
 
 function sendMsg(userId) {

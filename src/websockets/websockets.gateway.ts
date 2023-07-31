@@ -8,49 +8,58 @@ import { AuthService } from '../auth/auth.service';
 export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     server: Server;
-    private userMap: Map<string, string>;
+    private activeUsers = new Map<string, string>(); // socketId -> userId
     constructor( 
         private readonly chatService: ChatService, 
         private readonly authService: AuthService, 
-    ) { this.userMap = new Map<string, string>(); }
+    ) {}
 
     // Helper function to parse cookies from the cookie header.
-    private parseCookies(cookieHeader: string): { [key: string]: string  } {
-        const cookies = cookieHeader.split(';').map((cookie) => cookie.trim());
-        const cookieMap: { [key: string]: string  } = {};
-    
-        cookies.forEach((cookie) => {
-            const [name, value] = cookie.split('=');
-                cookieMap[name] = value;
-        });
-        return cookieMap;
+    private extractJwtFromCookies(client: Socket): string|undefined {
+        const cookieHeader = client.handshake.headers.cookie;
+        if(!cookieHeader) {
+            return undefined;
+        }
+
+        const cookies = cookieHeader ? cookieHeader.split(';').map((cookie) => cookie.trim()) : [];
+        const jwtCookie = cookies.find((cookie) => cookie.startsWith('jwt='))?.split('=')[1];
+
+        return jwtCookie;
     }
-
-    // WebSocket event handlers and business logic
     
+    // This is when a new user enters a chat room. 
     async handleConnection(client: Socket) {
-        const cookies = this.parseCookies(client.handshake.headers.cookie);
-        const {id: userId} = await this.authService.verifyToken(cookies['jwt']);
-        this.userMap.set(client.id, userId);
+        const jwtCookie = this.extractJwtFromCookies(client);
+        if(!jwtCookie) {
+            console.log('jwt is erquired to enter.');
+            return;
+        }
 
-        const announcement = `${this.userMap.get(client.id)} has entered the chat room.`;
+        const {id: userId} = await this.authService.verifyToken(jwtCookie);
+        this.activeUsers.set(client.id, userId);
+
+        const announcement = `${this.activeUsers.get(client.id)} has entered the chat room.`;
         console.log(announcement);
-        this.server.emit('chat', { announcement: announcement} );
+
+        this.server.emit('chat', { userId: 'announcement', message: announcement} );
+        this.server.emit('user-status', { activeUsers: Array.from(this.activeUsers) });
     }
 
     handleDisconnect(client: Socket) {
-        const announcement = `${this.userMap.get(client.id)} has left the chatroom.`;
+        const announcement = `${this.activeUsers.get(client.id)} has left the chatroom.`;
         console.log(announcement);
-        this.server.emit('chat', { announcement: announcement} );
+        this.activeUsers.delete(client.id);
+        this.server.emit('chat', { userId: 'announcement',  message: announcement} );
+        this.server.emit('user-status', { activeUsers: Array.from(this.activeUsers )});
     }
 
     @SubscribeMessage('chat')
     async handleMessage(client: Socket, payload: { message: string }) {
-        this.server.emit('chat', { userId: this.userMap.get(client.id), id: client.id, message: payload.message });
+        this.server.emit('chat', { userId: this.activeUsers.get(client.id), id: client.id, message: payload.message });
 
         if(this.chatService.isCommand(payload.message)) {
-            const chatBotMessage = await this.chatService.executeCommand(payload.message, 'two');
-            this.server.emit('chat', { id: 'chatBot', message: chatBotMessage });
+            const chatBotMessage = await this.chatService.executeCommand(payload.message, this.activeUsers.get(client.id));
+            this.server.emit('chat-bot', { userId: 'Chat bot', message: chatBotMessage });
         }
     }
 

@@ -2,20 +2,45 @@ import { Injectable } from '@nestjs/common';
 
 import { MySQLRepository } from '../shared/mysql.repository';
 
+const COMMAND_PREFIX = '!';
+enum Command {
+    LIST = '명단',
+    CREATE = '생성',
+    DELETE = '삭제',
+    JOIN = '가입',
+    SEARCH = '검색',
+    LEAVE = '탈퇴',
+    TEACH = '가르치기',
+    HELP = '도움말',
+}
+
 @Injectable()
 export class ChatService {
 
     private readonly wrongCommandAlert;
+    private readonly commandToFunction;
 
     constructor(private readonly repositoryInstance: MySQLRepository) {
-        this.wrongCommandAlert = `잘못된 명령어 입니다. '도움말'을 확인해 주세요.`;
+        this.wrongCommandAlert = `잘못된 명령어 입니다. '!도움말' 명령어로 도움말을 확인해 주세요.`;
+        this.commandToFunction = {
+            [Command.LIST]: async (cmdObject) => {
+                return cmdObject.partyId ? await this.getListById(cmdObject.partyId) : await this.getAllList();
+            },
+            [Command.CREATE]: async (cmdObject) => await this.createTeam(cmdObject.title, cmdObject.limit),
+            [Command.DELETE]: async (cmdObject) => await this.deleteTeam(cmdObject.partyId),
+            [Command.SEARCH]: async (cmdObject) => await this.searchById(cmdObject.userId),
+            [Command.JOIN]: async (cmdObject) => await this.insertMember(cmdObject.partyId, cmdObject.order, cmdObject.userId),
+            [Command.LEAVE]: async (cmdObject) => await this.leaveTeam(cmdObject.partyId, cmdObject.order),
+            [Command.HELP]: () => this.getTutorial(),
+        }
+    }
+
+    private unknownCommand(cmdObject) {
+        return cmdObject.cmd;
     }
 
     isCommand(message) {
-        if(message[0]==='!') {
-            return true;
-        }
-        return false;
+        return message.startsWith(COMMAND_PREFIX);
     }
 
     manipulateObjectToList(users, limit) {
@@ -34,32 +59,37 @@ export class ChatService {
     }
 
     async getAllList() {
-        let lists = '<명단 리스트>\n';
+        // Fetch all lists from the DB.
         let sql = `SELECT Parties.id, Parties.title, Parties.limit, PartyMembers.order, PartyMembers.userId FROM Parties LEFT JOIN PartyMembers ON Parties.id = PartyMembers.partyId ORDER BY Parties.id, PartyMembers.order;`;
         let res = await this.repositoryInstance.executeQuery(sql);
-        type ListType = { id: number, title: string, limit: number, order: number, userId: number };
-        let charts: Map<number, ListType[]> = new Map<number, ListType[]>();
+
+        // Fetched data from M:N table store into a map with the same team.
+        type PartyType = { id: number, title: string, limit: number, order: number, userId: number };
+        let parties: Map<number, PartyType[]> = new Map<number, PartyType[]>();
         for(let i=0;i<res.length;i++) {
-            let chart: ListType = {
+            let party: PartyType = {
                 id: res[i].id,
                 title: res[i].title,
                 limit: res[i].limit,
                 order: res[i].order,
                 userId: res[i].userId,
             };
-            charts.get(chart.id) ? charts.get(chart.id).push(chart) : charts.set(chart.id, [chart]);
-        }
-        let accumulated_body = ``;
-        for(const [partyId, value] of charts) {
-            let limit = charts.get(partyId)[0].limit;
-            let users = charts.get(partyId);
-            let { header, body } = this.manipulateObjectToList(users, limit);
-            lists = lists.concat(header);
-            accumulated_body = accumulated_body.concat(body);
+            parties.get(party.id) ? parties.get(party.id).push(party) : parties.set(party.id, [party]);
         }
 
-        lists = lists.concat('\n━━━━━༻❁༺━━━━━\n');
+        // Making an entire party list.
+        let lists = '<명단 리스트>\n';
+        let accumulated_body = ``;
+        for(const [partyId, value] of parties) {
+            let limit = parties.get(partyId)[0].limit;
+            let users = parties.get(partyId);
+            let { header, body } = this.manipulateObjectToList(users, limit);
+            lists = lists.concat(header);
+            accumulated_body = accumulated_body.concat(body+'\n');
+        }
+        lists = lists.concat('\n━━━━━༻❁༺━━━━━\n\n');
         lists = lists.concat(accumulated_body);
+
         return lists;
     }
 
@@ -72,7 +102,7 @@ export class ChatService {
         return list;
     }
 
-    async createTeam(title, limit?) {
+    private async createTeam(title, limit?) {
         try {
             let sql = `INSERT INTO Parties (id, title) VALUES ((SELECT MIN(p1.id+1) FROM Parties p1 LEFT JOIN Parties p2 ON p1.id+1 = p2.id WHERE p2.id IS NULL), ?);`;
             let time = '';
@@ -144,41 +174,39 @@ export class ChatService {
     }
 
     getTutorial(){
-        return `
-            • 명단 보기 
-            !명단  
-            !명단 3팀             
+        return `• 명단 보기 
+!명단  
+!명단 3팀             
 
-            • 팀 생성하기 (기본값 10명) / 최대인원 설정
-            !생성 제목
-            // !생성 제목 작성 후 n명
-            
-            • 특정 아이디가 가입된 팀 검색하기
-            !검색 아이디
+• 팀 생성하기 (기본값 10명) / 최대인원 설정
+!생성 제목
+// !생성 제목 작성 후 n명
+        
+• 특정 아이디가 가입된 팀 검색하기
+!검색 아이디
 
-            • 팀에 가입하기
-            !가입 3팀
-            !가입 3팀 2번
+• 팀에 가입하기
+// !가입 3팀
+!가입 3팀 2번
 
-            • 팀 삭제하기
-            !삭제 3팀
+• 팀 삭제하기
+!삭제 3팀
 
-            • 팀에서 탈퇴하기
-            !탈퇴 3팀 2번
+• 팀에서 탈퇴하기
+!탈퇴 3팀 2번
 
-            • 도움말
-            !도움말
-        `;
+• 도움말
+!도움말`;
     }
 
-    analyzeCommand(message) {
+    analyzeCommand(message, userId?) {
         // Validate the command.
-        const regex = /(!명단|!가입|!생성|!검색|!탈퇴|!수정|!삭제|!도움말)/;
-        let cmd = message.substr(0,4).match(regex);
+        const commandRegex = new RegExp(`(${Object.values(Command).join('|')})`);
+        let cmd = message.substr(1,4).match(commandRegex);
         if(!cmd) {
             return { cmd: this.wrongCommandAlert };
         }
-        cmd = cmd[0].substr(1);
+        cmd = cmd[1];
 
         const teamPattern = /([0-9]+)팀/;
         const teamMatch = message.match(teamPattern);
@@ -190,11 +218,10 @@ export class ChatService {
 
         let title = '';
         let limit = null;
-        let userId = null;
 
         // This switch statement validates if user has provided arguments properly regarding to their request.
         switch(cmd) {
-            case '생성': {
+            case Command.CREATE: {
                 // Find digits at the end.
                 const limitPattern = /최대인원설정:\s*\d+명$/;
                 const limitMatch = message.match(limitPattern);
@@ -206,19 +233,20 @@ export class ChatService {
                 }
                 break;
             }
-            case '검색': {
+            case Command.SEARCH: {
                 if(message.length<=4) {
                     return { cmd: this.wrongCommandAlert };
                 }
                 userId = message.substr(4);
                 break;
             }
-            case '가입': {
+            case Command.JOIN: {
                 if(!partyId) {
                     return { cmd: this.wrongCommandAlert};
                 }
+                break;
             }
-            case '탈퇴': {
+            case Command.LEAVE: {
                 if(!partyId || !order) {
                     return { cmd: this.wrongCommandAlert};
                 }
@@ -228,36 +256,42 @@ export class ChatService {
         return { cmd, title, partyId, order, limit, userId };
     }
 
-    async executeCommand(message, user_id?) {
+    async executeCommand(message, userId?) {
+        const cmdObject = this.analyzeCommand(message, userId);
+        const selectedFunction = this.commandToFunction[cmdObject.cmd] || this.unknownCommand;
+
+        return await selectedFunction(cmdObject); // Call the returned function here.
+    }
+
+    /*
+    async executeCommand2(message, user_id?) {
         const cmdObject = this.analyzeCommand(message);
         switch(cmdObject.cmd) {
-            case '명단': {
-                if(cmdObject.partyId) {
-                    return await this.getListById(cmdObject.partyId);
-                }
-                return await this.getAllList();
+            case COMMANDS.LIST: {
+                return cmdObject.partyId ? await this.getListById(cmdObject.partyId) : await this.getAllList();
             }
-            case '생성': {
+            case COMMANDS.CREATE: {
                 return await this.createTeam(cmdObject.title, cmdObject.limit);
             }
-            case '삭제': {
+            case COMMANDS.DELETE: {
                 return await this.deleteTeam(cmdObject.partyId);
             }
-            case '가입': {
+            case COMMANDS.JOIN: {
                 return await this.insertMember(cmdObject.partyId, cmdObject.order, user_id);
             }
-            case '검색': {
+            case COMMANDS.SEARCH: {
                 return await this.searchById(cmdObject.userId);
             }
-            case '탈퇴': {
+            case COMMANDS.LEAVE: {
                 return await this.leaveTeam(cmdObject.partyId, cmdObject.order);
             }
-            case '도움말': {
+            case COMMANDS.HELP: {
                 return this.getTutorial();
             }
             default: 
                 return cmdObject.cmd;
         }
     }
+    */
 
 }
