@@ -2,36 +2,49 @@ import { Injectable } from '@nestjs/common';
 
 import { MySQLRepository } from '../shared/mysql.repository';
 
-const COMMAND_PREFIX = '!';
-enum Command {
-    LIST = '명단',
-    CREATE = '생성',
-    DELETE = '삭제',
-    JOIN = '가입',
-    SEARCH = '검색',
-    LEAVE = '탈퇴',
-    TEACH = '가르치기',
-    HELP = '도움말',
-}
+// const COMMAND_PREFIX = '!';
 
 @Injectable()
 export class ChatService {
 
+    private readonly COMMAND_PREFIX = {
+        '!': '!',
+        '/': '/',
+    };
     private readonly wrongCommandAlert;
     private readonly commandToFunction;
+    private readonly Command = {
+        LIST: '명단',
+        CREATE: '생성',
+        DELETE: '삭제',
+        JOIN: '가입',
+        SEARCH: '검색',
+        LEAVE: '탈퇴',
+        TEACH: '학습',
+        TAUGHT_LIST: '학습목록',
+        HELP: '도움말',
+    };
+    private commandsMaxLength = 0;
+    private lesson_titles;
 
     constructor(private readonly repositoryInstance: MySQLRepository) {
         this.wrongCommandAlert = `잘못된 명령어 입니다. '!도움말' 명령어로 도움말을 확인해 주세요.`;
         this.commandToFunction = {
-            [Command.LIST]: async (cmdObject) => {
+            [this.Command.LIST]: async (cmdObject) => {
                 return cmdObject.partyId ? await this.getListById(cmdObject.partyId) : await this.getAllList();
             },
-            [Command.CREATE]: async (cmdObject) => await this.createTeam(cmdObject.title, cmdObject.limit),
-            [Command.DELETE]: async (cmdObject) => await this.deleteTeam(cmdObject.partyId),
-            [Command.SEARCH]: async (cmdObject) => await this.searchById(cmdObject.userId),
-            [Command.JOIN]: async (cmdObject) => await this.insertMember(cmdObject.partyId, cmdObject.order, cmdObject.userId),
-            [Command.LEAVE]: async (cmdObject) => await this.leaveTeam(cmdObject.partyId, cmdObject.order),
-            [Command.HELP]: () => this.getTutorial(),
+            [this.Command.CREATE]: async (cmdObject) => await this.createTeam(cmdObject.title, cmdObject.limit),
+            [this.Command.DELETE]: async (cmdObject) => await this.deleteTeam(cmdObject.partyId),
+            [this.Command.SEARCH]: async (cmdObject) => await this.searchById(cmdObject.userId),
+            [this.Command.JOIN]: async (cmdObject) => await this.insertMember(cmdObject.partyId, cmdObject.order, cmdObject.userId),
+            [this.Command.LEAVE]: async (cmdObject) => await this.leaveTeam(cmdObject.partyId, cmdObject.order),
+            [this.Command.TEACH]: async (cmdObject) => await this.teachLesson(cmdObject.title, cmdObject.lesson),
+            [this.Command.TAUGHT_LIST]: async () => await this.getLessonList(),
+            [this.Command.HELP]: () => this.getTutorial(),
+        }
+        const commands = Object.values(this.Command);
+        for(const key in commands) {
+            this.commandsMaxLength = Math.max(this.commandsMaxLength, commands[key].length);
         }
     }
 
@@ -39,8 +52,8 @@ export class ChatService {
         return cmdObject.cmd;
     }
 
-    isCommand(message) {
-        return message.startsWith(COMMAND_PREFIX);
+    isCommand(cursor) {
+        return cursor===this.COMMAND_PREFIX[cursor] ? cursor : null;
     }
 
     manipulateObjectToList(users, limit) {
@@ -120,6 +133,7 @@ export class ChatService {
         }
     }
 
+    // 가입
     async insertMember(partyId, order, userId) {
         const sql = `INSERT INTO PartyMembers (partyId, \`order\`, userId) VALUES (?,?,?);`;
         const values = [ partyId, order, userId ];
@@ -130,6 +144,7 @@ export class ChatService {
         return `Error:: Something went wrong.`;
     }
 
+    // 삭제
     async deleteTeam(partyId) {
         try {
             const sql = `DELETE FROM Parties WHERE id = ?;`;
@@ -143,6 +158,7 @@ export class ChatService {
         }
     }
 
+    // 검색
     async searchById(userId) {
         try {
             const sql = `SELECT PartyMembers.userId, PartyMembers.order, PartyMembers.partyId, Parties.title FROM PartyMembers LEFT JOIN Parties ON PartyMembers.partyId = Parties.id WHERE PartyMembers.userId = ? ORDER BY PartyMembers.partyId;`;
@@ -161,6 +177,7 @@ export class ChatService {
         return 'search by id';
     }
 
+    // 탈퇴
     async leaveTeam(partyId, order) {
         const sql = `DELETE FROM PartyMembers WHERE partyId = ? AND \`order\` = ?;`;
         const values = [ partyId, order ];
@@ -173,40 +190,72 @@ export class ChatService {
         }
     }
 
+    // 학습
+    async teachLesson(command, lesson) {
+        try {
+            const sql = `INSERT INTO Lessons (command, lesson) VALUES (?, ?);`;
+            const values = [ command, lesson ];
+            const res = await this.repositoryInstance.executeQuery(sql, values);
+        } catch(err) {
+            if(err.code==='ER_DUP_ENTRY' && err.errno===1062) {
+                return `이미 학습한 제목이에요!`;
+                // throw new Error(`이미 학습한 제목이에요!`);
+            }
+            return err;
+        }
+    }
+
+    // 학습목록
+    async getLessonList() {
+        try {
+            const sql = `SELECT command FROM Lessons;`;
+            const res = await this.repositoryInstance.executeQuery(sql);
+            let lessonList = '현재 챗봇이 학습한 내용이에요!\n'
+            lessonList = lessonList.concat('━━━━━༻❁༺━━━━━\n\n');
+            for(let i=0;i<res.length;i++) {
+                lessonList = lessonList.concat(`[${i+1}] ${res[i].command}\n`);
+            }
+            return lessonList;
+        } catch(err) {
+            return err;
+        }
+    }
+
     getTutorial(){
         return `• 명단 보기 
-!명단  
-!명단 3팀             
-
+!${this.Command.LIST}  
+!${this.Command.LIST} 3팀\n 
 • 팀 생성하기 (기본값 10명) / 최대인원 설정
-!생성 제목
-// !생성 제목 작성 후 n명
-        
+!${this.Command.CREATE} 제목
+// !${this.Command.CREATE} 제목 작성 후 n명\n
 • 특정 아이디가 가입된 팀 검색하기
-!검색 아이디
-
+!${this.Command.SEARCH} 아이디\n
 • 팀에 가입하기
-// !가입 3팀
-!가입 3팀 2번
-
+// !${this.Command.JOIN} 3팀
+!${this.Command.JOIN} 3팀 2번\n
 • 팀 삭제하기
-!삭제 3팀
-
+!${this.Command.DELETE} 3팀\n
 • 팀에서 탈퇴하기
-!탈퇴 3팀 2번
-
+!${this.Command.LEAVE} 3팀 2번\n
+• 학습 시키기
+!${this.Command.TEACH} 학습_제목 = 학습할 내용 작성\n
+• 학습 목록 출력
+!${this.Command.TAUGHT_LIST}\n
 • 도움말
 !도움말`;
     }
 
+    findExactCommand(message, Command) {
+        const commandRegex = new RegExp(`^(${Object.values(Command).join('|')})(?:\\s.*|$)`);
+        const match = message.match(commandRegex);
+        return match ? match[1] : null
+    }
+
     analyzeCommand(message, userId?) {
-        // Validate the command.
-        const commandRegex = new RegExp(`(${Object.values(Command).join('|')})`);
-        let cmd = message.substr(1,4).match(commandRegex);
+        let cmd = this.findExactCommand(message.substr(1,this.commandsMaxLength), this.Command);
         if(!cmd) {
             return { cmd: this.wrongCommandAlert };
         }
-        cmd = cmd[1];
 
         const teamPattern = /([0-9]+)팀/;
         const teamMatch = message.match(teamPattern);
@@ -218,10 +267,11 @@ export class ChatService {
 
         let title = '';
         let limit = null;
+        let lesson = null;
 
         // This switch statement validates if user has provided arguments properly regarding to their request.
         switch(cmd) {
-            case Command.CREATE: {
+            case this.Command.CREATE: {
                 // Find digits at the end.
                 const limitPattern = /최대인원설정:\s*\d+명$/;
                 const limitMatch = message.match(limitPattern);
@@ -233,27 +283,38 @@ export class ChatService {
                 }
                 break;
             }
-            case Command.SEARCH: {
+            case this.Command.SEARCH: {
                 if(message.length<=4) {
                     return { cmd: this.wrongCommandAlert };
                 }
                 userId = message.substr(4);
                 break;
             }
-            case Command.JOIN: {
+            case this.Command.JOIN: {
                 if(!partyId) {
                     return { cmd: this.wrongCommandAlert};
                 }
                 break;
             }
-            case Command.LEAVE: {
+            case this.Command.LEAVE: {
                 if(!partyId || !order) {
                     return { cmd: this.wrongCommandAlert};
                 }
                 break;
             }
+            case this.Command.TEACH: {
+                // Pattern that finds title and lesson.
+                const pattern = /^([^=\s]+)\s*=\s*(.+)$/;
+                const matches = message.substr( this.Command.TEACH.length+2).match(pattern);
+                if(!matches) {
+                    return { cmd: this.wrongCommandAlert };
+                }
+                title = matches[1];
+                lesson = matches[2];
+                break;
+            }
         }
-        return { cmd, title, partyId, order, limit, userId };
+        return { cmd, title, partyId, order, limit, userId, lesson };
     }
 
     async executeCommand(message, userId?) {
@@ -262,36 +323,5 @@ export class ChatService {
 
         return await selectedFunction(cmdObject); // Call the returned function here.
     }
-
-    /*
-    async executeCommand2(message, user_id?) {
-        const cmdObject = this.analyzeCommand(message);
-        switch(cmdObject.cmd) {
-            case COMMANDS.LIST: {
-                return cmdObject.partyId ? await this.getListById(cmdObject.partyId) : await this.getAllList();
-            }
-            case COMMANDS.CREATE: {
-                return await this.createTeam(cmdObject.title, cmdObject.limit);
-            }
-            case COMMANDS.DELETE: {
-                return await this.deleteTeam(cmdObject.partyId);
-            }
-            case COMMANDS.JOIN: {
-                return await this.insertMember(cmdObject.partyId, cmdObject.order, user_id);
-            }
-            case COMMANDS.SEARCH: {
-                return await this.searchById(cmdObject.userId);
-            }
-            case COMMANDS.LEAVE: {
-                return await this.leaveTeam(cmdObject.partyId, cmdObject.order);
-            }
-            case COMMANDS.HELP: {
-                return this.getTutorial();
-            }
-            default: 
-                return cmdObject.cmd;
-        }
-    }
-    */
 
 }

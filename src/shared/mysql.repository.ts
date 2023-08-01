@@ -30,7 +30,8 @@ export class MySQLRepository {
             return res;
         } catch(err) {
             console.error('err:', err);
-            throw new Error(err);
+            throw err;
+            // throw new Error(err);
         } finally {
             if(connection) {
                 connection.release();

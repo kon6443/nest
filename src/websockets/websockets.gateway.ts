@@ -56,8 +56,9 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
     @SubscribeMessage('chat')
     async handleMessage(client: Socket, payload: { message: string }) {
         this.server.emit('chat', { userId: this.activeUsers.get(client.id), id: client.id, message: payload.message });
+        console.log(this.chatService.isCommand(payload.message.substr(0,1)));
 
-        if(this.chatService.isCommand(payload.message)) {
+        if(this.chatService.isCommand(payload.message.substr(0,1))) {
             const chatBotMessage = await this.chatService.executeCommand(payload.message, this.activeUsers.get(client.id));
             this.server.emit('chat-bot', { userId: 'Chat bot', message: chatBotMessage });
         }
