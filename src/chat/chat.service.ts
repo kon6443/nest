@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
-
+import { HttpService } from '@nestjs/axios';
 import { MySQLRepository } from '../shared/mysql.repository';
-
-// const COMMAND_PREFIX = '!';
 
 @Injectable()
 export class ChatService {
@@ -21,13 +19,17 @@ export class ChatService {
         SEARCH: '검색',
         LEAVE: '탈퇴',
         TEACH: '학습',
-        TAUGHT_LIST: '학습목록',
+        LESSON_DELETE: '학습삭제',
+        LESSON_LIST: '학습목록',
         HELP: '도움말',
     };
     private commandsMaxLength = 0;
-    private lesson_titles;
+    private readonly official_announcement_url = `https://forum.nexon.com/api/v1/board/1211/threads?alias=maplestorym&pageNo=1&paginationType=PAGING&pageSize=15&blockSize=5&_=1690967856061`;
 
-    constructor(private readonly repositoryInstance: MySQLRepository) {
+    constructor( 
+        private readonly repositoryInstance: MySQLRepository, 
+        private readonly httpService: HttpService, 
+    ) {
         this.wrongCommandAlert = `잘못된 명령어 입니다. '!도움말' 명령어로 도움말을 확인해 주세요.`;
         this.commandToFunction = {
             [this.Command.LIST]: async (cmdObject) => {
@@ -39,7 +41,8 @@ export class ChatService {
             [this.Command.JOIN]: async (cmdObject) => await this.insertMember(cmdObject.partyId, cmdObject.order, cmdObject.userId),
             [this.Command.LEAVE]: async (cmdObject) => await this.leaveTeam(cmdObject.partyId, cmdObject.order),
             [this.Command.TEACH]: async (cmdObject) => await this.teachLesson(cmdObject.title, cmdObject.lesson),
-            [this.Command.TAUGHT_LIST]: async () => await this.getLessonList(),
+            [this.Command.LESSON_DELETE]: async (cmdObject) => await this.deleteLesson(cmdObject.title),
+            [this.Command.LESSON_LIST]: async () => await this.getOrganizedTitles(),
             [this.Command.HELP]: () => this.getTutorial(),
         }
         const commands = Object.values(this.Command);
@@ -52,7 +55,7 @@ export class ChatService {
         return cmdObject.cmd;
     }
 
-    isCommand(cursor) {
+    private isCommand(cursor) {
         return cursor===this.COMMAND_PREFIX[cursor] ? cursor : null;
     }
 
@@ -69,6 +72,30 @@ export class ChatService {
             }
         }
         return { header, body };
+    }
+
+    async getThreads() {
+        try {
+            const url = this.official_announcement_url;
+            const res = await this.httpService.get(url).toPromise(); 
+            const threadIds = res.data.threads.map((thread) => thread.threadId);
+            const titles = res.data.threads.map((thread) => thread.title);
+            if(res.status===200) {
+                return { threadIds, titles };
+            }
+        } catch(err) {
+            throw new Error(err);
+        }
+    }
+
+    async getNewAnnouncement() {
+        let new_announcement;
+        const { threadIds, titles } = await this.getThreads();
+        for(let i=0;i<threadIds.length;i++) {
+            console.log(`${threadIds[i]}: ${titles[i]}`);
+        }
+        console.log('url:', this.official_announcement_url);
+        return new_announcement;
     }
 
     async getAllList() {
@@ -190,12 +217,27 @@ export class ChatService {
         }
     }
 
-    // 학습
-    async teachLesson(command, lesson) {
+    async getPreTaughtLessonsByTitle(title) {
         try {
-            const sql = `INSERT INTO Lessons (command, lesson) VALUES (?, ?);`;
-            const values = [ command, lesson ];
+            const sql = `SELECT * FROM Lessons WHERE title = ?;`;
+            const values = [ title ];
+            const [ res ] = await this.repositoryInstance.executeQuery(sql, values);
+            return res.lesson;
+        } catch(err) {
+            return `학습하지 않은 제목이에요!`;
+        }
+    }
+
+    // 학습
+    async teachLesson(title, lesson) {
+        try {
+            console.log('teachLesson:', title, lesson);
+            const sql = `INSERT INTO Lessons (title, lesson) VALUES (?, ?);`;
+            const values = [ title, lesson ];
             const res = await this.repositoryInstance.executeQuery(sql, values);
+            if(res.affectedRows===1) {
+                return `학습 제목${title}을(를) 학습내용 ${lesson} 과(와) 함께 등록했어요!`;
+            }
         } catch(err) {
             if(err.code==='ER_DUP_ENTRY' && err.errno===1062) {
                 return `이미 학습한 제목이에요!`;
@@ -206,19 +248,37 @@ export class ChatService {
     }
 
     // 학습목록
-    async getLessonList() {
+    async readAllLessonTitles() {
         try {
-            const sql = `SELECT command FROM Lessons;`;
-            const res = await this.repositoryInstance.executeQuery(sql);
-            let lessonList = '현재 챗봇이 학습한 내용이에요!\n'
-            lessonList = lessonList.concat('━━━━━༻❁༺━━━━━\n\n');
-            for(let i=0;i<res.length;i++) {
-                lessonList = lessonList.concat(`[${i+1}] ${res[i].command}\n`);
-            }
-            return lessonList;
+            const sql = `SELECT title FROM Lessons;`;
+            return await this.repositoryInstance.executeQuery(sql);
         } catch(err) {
             return err;
         }
+    }
+
+    // 학습 삭제
+    async deleteLesson(title) {
+        try {
+            const sql = `DELETE FROM Lessons WHERE title = ?;`;
+            const values = [ title ];
+            const res = await this.repositoryInstance.executeQuery(sql, values);
+            if(res.affectedRows===1) {
+                return `학습된 ${title}이(가) 삭제 되었습니다!`;
+            }
+        } catch(err) {
+            return err;
+        }
+    }
+
+    async getOrganizedTitles() {
+        const res = await this.readAllLessonTitles();
+        let organizedTitles = `현재 챗봇이 학습한 내용이에요!\n`;
+        organizedTitles = organizedTitles.concat(`━━━━━༻❁༺━━━━━\n\n`);
+        for(let i=0;i<res.length;i++) {
+            organizedTitles = organizedTitles.concat(`[${i+1}] ${res[i].title}\n`);
+        }
+        return organizedTitles;
     }
 
     getTutorial(){
@@ -239,8 +299,10 @@ export class ChatService {
 !${this.Command.LEAVE} 3팀 2번\n
 • 학습 시키기
 !${this.Command.TEACH} 학습_제목 = 학습할 내용 작성\n
+• 학습 삭제하기
+!${this.Command.DELETE} 학습_제목\n
 • 학습 목록 출력
-!${this.Command.TAUGHT_LIST}\n
+!${this.Command.LESSON_LIST}\n
 • 도움말
 !도움말`;
     }
@@ -313,15 +375,30 @@ export class ChatService {
                 lesson = matches[2];
                 break;
             }
+            case this.Command.LESSON_DELETE: {
+                title = message.substr(6);
+                break;
+            }
         }
         return { cmd, title, partyId, order, limit, userId, lesson };
     }
 
-    async executeCommand(message, userId?) {
-        const cmdObject = this.analyzeCommand(message, userId);
-        const selectedFunction = this.commandToFunction[cmdObject.cmd] || this.unknownCommand;
-
-        return await selectedFunction(cmdObject); // Call the returned function here.
+    async handleChatCommand(message, userId?) {
+        const isCommand = this.isCommand(message.substr(0,1));
+        switch(isCommand) {
+            case this.COMMAND_PREFIX['!']: {
+                // For normal chat bot commands execution.
+                const cmdObject = this.analyzeCommand(message, userId);
+                const selectedFunction = this.commandToFunction[cmdObject.cmd] || this.unknownCommand;
+                return await selectedFunction(cmdObject); // Call the returned function here.
+            }
+            case this.COMMAND_PREFIX['/']: {
+                // For '학습' commands execution.
+                return await this.getPreTaughtLessonsByTitle(message.substr(1));
+            }
+            default: 
+                return undefined;
+        }
     }
 
 }
