@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { MySQLRepository } from '../shared/mysql.repository';
 
+import { AnnouncementDto } from './dto/announcement-dto';
+
 @Injectable()
 export class ChatService {
 
@@ -21,10 +23,12 @@ export class ChatService {
         TEACH: '학습',
         LESSON_DELETE: '학습삭제',
         LESSON_LIST: '학습목록',
+        ANNOUNCEMENT: '공지',
         HELP: '도움말',
     };
     private commandsMaxLength = 0;
     private readonly official_announcement_url = `https://forum.nexon.com/api/v1/board/1211/threads?alias=maplestorym&pageNo=1&paginationType=PAGING&pageSize=15&blockSize=5&_=1690967856061`;
+    private readonly board_path = `https://forum.nexon.com/maplestorym/board_view?board=1211&thread=`;
 
     constructor( 
         private readonly repositoryInstance: MySQLRepository, 
@@ -43,6 +47,7 @@ export class ChatService {
             [this.Command.TEACH]: async (cmdObject) => await this.teachLesson(cmdObject.title, cmdObject.lesson),
             [this.Command.LESSON_DELETE]: async (cmdObject) => await this.deleteLesson(cmdObject.title),
             [this.Command.LESSON_LIST]: async () => await this.getOrganizedTitles(),
+            [this.Command.ANNOUNCEMENT]: async () => await this.getAnnouncements(),
             [this.Command.HELP]: () => this.getTutorial(),
         }
         const commands = Object.values(this.Command);
@@ -74,28 +79,112 @@ export class ChatService {
         return { header, body };
     }
 
-    async getThreads() {
+    async getThreadsFromDB(): Promise<AnnouncementDto[]|undefined> {
+        try {
+            const sql = `SELECT * FROM Announcements ORDER BY threadId DESC;`;
+            const threads: AnnouncementDto[]|undefined = await this.repositoryInstance.executeQuery(sql);
+            return threads.length>0 ? threads : undefined;
+        } catch(err) {
+            throw new Error(err);
+        }
+    }
+
+    async getThreadsFromNexon(): Promise<AnnouncementDto[]> {
         try {
             const url = this.official_announcement_url;
             const res = await this.httpService.get(url).toPromise(); 
-            const threadIds = res.data.threads.map((thread) => thread.threadId);
-            const titles = res.data.threads.map((thread) => thread.title);
+            const threads: AnnouncementDto[] = res.data.threads.map((thread) => new AnnouncementDto({
+                threadId: Number(thread.threadId),
+                title: thread.title,
+                createDate: Number(thread.createDate), 
+                url: this.board_path+thread.threadId,
+            }));
             if(res.status===200) {
-                return { threadIds, titles };
+                return threads;
             }
         } catch(err) {
             throw new Error(err);
         }
     }
 
-    async getNewAnnouncement() {
-        let new_announcement;
-        const { threadIds, titles } = await this.getThreads();
-        for(let i=0;i<threadIds.length;i++) {
-            console.log(`${threadIds[i]}: ${titles[i]}`);
+    async insertThreadsToDB(threads: AnnouncementDto[]) {
+        try {
+            const sql = `INSERT INTO Announcements (threadId, title, createDate, url) VALUES ?;`;
+            const values = threads.map((thread) => [
+                thread.threadId,
+                thread.title,
+                thread.createDate,
+                thread.url,
+            ]);
+            const res = await this.repositoryInstance.executeQuery(sql, [ values ]);
+        } catch(err) {
+            throw new Error(err);
         }
-        console.log('url:', this.official_announcement_url);
+    }
+
+    getNewThreads(threadsFromNexon: AnnouncementDto[], threadsFromDB: AnnouncementDto[]): AnnouncementDto[]|undefined {
+        let newThreads: AnnouncementDto[] = [];
+        threadsFromDB = threadsFromDB ?? [];
+        for(let i=0;i<threadsFromNexon.length;i++) {
+            for(let j=0;j<threadsFromDB.length;j++) {
+                if(threadsFromNexon[i].threadId>threadsFromDB[j].threadId) {
+                    newThreads.push(threadsFromNexon[i]);
+                    break;
+                }
+                if(threadsFromNexon[i].threadId<=threadsFromDB[j].threadId) return newThreads.length ? newThreads : undefined;
+            }
+        }
+        return newThreads.length ? newThreads : undefined;
+    }
+
+    async updateThreads() {
+        const threadsFromNexon: AnnouncementDto[] = await this.getThreadsFromNexon();
+        let threadsFromDB: AnnouncementDto[] = await this.getThreadsFromDB();
+        if(!threadsFromDB) {
+            // Check if this method returns something properly.
+            // It should return newly inserted threds.
+            return await this.insertThreadsToDB(threadsFromNexon);
+        }
+
+        const newThreads: AnnouncementDto[] = this.getNewThreads(threadsFromNexon, threadsFromDB);
+        console.log('newThreads:', newThreads);
+
+        /*
+        if(newThreads) {
+            // insert? or replace? 
+            return await this.insertThreadsToDB(newThreads);
+        }
+        */
+
+    }
+
+    async getAnnouncements(): Promise<string> {
+        try {
+            const threads: AnnouncementDto[] = await this.getThreadsFromNexon();
+            let message = '';
+            for(let i=0;i<threads.length;i++) {
+                message = message.concat(`[신규 공지사항]\n${threads[i].title}\n링크: ${threads[i].url}\n\n`);
+            }
+            return message;
+        } catch(err) {
+            throw new Error(err);
+        }
+    }
+
+    async getNewAnnouncement(): Promise<AnnouncementDto[]> {
+        let new_announcement = `https://forum.nexon.com/maplestorym/board_view?board=1211&thread=`;
+        const threads: AnnouncementDto[] = await this.getThreadsFromNexon();
+        console.log('fff:', threads);
+        // const { threadIds, titles } = await this.getThreadsFromNexon();
+        /*
+        for(let i=0;i<threadIds.length;i++) {
+            console.log(`${threads[i].threadId}: ${threads[i].title}`);
+        }
+        new_announcement = new_announcement.concat(threadIds[0]);
+        console.log('url:', new_announcement);
         return new_announcement;
+        */
+        return threads;
     }
 
     async getAllList() {
@@ -385,6 +474,7 @@ export class ChatService {
 
     async handleChatCommand(message, userId?) {
         const isCommand = this.isCommand(message.substr(0,1));
+        await this.updateThreads();
         switch(isCommand) {
             case this.COMMAND_PREFIX['!']: {
                 // For normal chat bot commands execution.

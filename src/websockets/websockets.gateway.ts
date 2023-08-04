@@ -44,9 +44,6 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
         this.server.emit('chat', { userId: 'announcement', message: announcement} );
         this.server.emit('user-status', { activeUsers: Array.from(this.activeUsers) });
 
-        // This is a test.
-        this.server.emit('chat-bot', { userId: 'Chat bot', message: this.chatService.getNewAnnouncement() });
-
     }
 
     handleDisconnect(client: Socket) {
