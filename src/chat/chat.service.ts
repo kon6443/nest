@@ -24,6 +24,7 @@ export class ChatService {
         LESSON_DELETE: '학습삭제',
         LESSON_LIST: '학습목록',
         ANNOUNCEMENT: '공지',
+        UPDATE_ANNOUNCEMENT: '공지업뎃', 
         HELP: '도움말',
     };
     private commandsMaxLength = 0;
@@ -48,7 +49,8 @@ export class ChatService {
             [this.Command.LESSON_DELETE]: async (cmdObject) => await this.deleteLesson(cmdObject.title),
             [this.Command.LESSON_LIST]: async () => await this.getOrganizedTitles(),
             [this.Command.ANNOUNCEMENT]: async () => await this.getAnnouncements(),
-            [this.Command.HELP]: () => this.getTutorial(),
+            [this.Command.UPDATE_ANNOUNCEMENT]: async () => await this.updateAnnouncements(),
+            [this.Command.HELP]: () => this.getHelp(),
         }
         const commands = Object.values(this.Command);
         for(const key in commands) {
@@ -83,7 +85,7 @@ export class ChatService {
         try {
             const sql = `SELECT * FROM Announcements ORDER BY threadId DESC;`;
             const threads: AnnouncementDto[]|undefined = await this.repositoryInstance.executeQuery(sql);
-            return threads.length>0 ? threads : undefined;
+            return threads;
         } catch(err) {
             throw new Error(err);
         }
@@ -122,69 +124,78 @@ export class ChatService {
         }
     }
 
-    getNewThreads(threadsFromNexon: AnnouncementDto[], threadsFromDB: AnnouncementDto[]): AnnouncementDto[]|undefined {
+    getNewThreads(threadsFromNexon: AnnouncementDto[], threadsFromDB: AnnouncementDto[]): AnnouncementDto[] {
         let newThreads: AnnouncementDto[] = [];
-        threadsFromDB = threadsFromDB ?? [];
+        if(!threadsFromDB.length) 
+            return threadsFromNexon;
         for(let i=0;i<threadsFromNexon.length;i++) {
             for(let j=0;j<threadsFromDB.length;j++) {
                 if(threadsFromNexon[i].threadId>threadsFromDB[j].threadId) {
                     newThreads.push(threadsFromNexon[i]);
                     break;
                 }
-                if(threadsFromNexon[i].threadId<=threadsFromDB[j].threadId) return newThreads.length ? newThreads : undefined;
+                if(threadsFromNexon[i].threadId<=threadsFromDB[j].threadId) return newThreads;
             }
         }
-        return newThreads.length ? newThreads : undefined;
+        return newThreads;
     }
 
-    async updateThreads() {
-        const threadsFromNexon: AnnouncementDto[] = await this.getThreadsFromNexon();
-        let threadsFromDB: AnnouncementDto[] = await this.getThreadsFromDB();
-        if(!threadsFromDB) {
-            // Check if this method returns something properly.
-            // It should return newly inserted threds.
-            return await this.insertThreadsToDB(threadsFromNexon);
-        }
-
-        const newThreads: AnnouncementDto[] = this.getNewThreads(threadsFromNexon, threadsFromDB);
-        console.log('newThreads:', newThreads);
-
-        /*
-        if(newThreads) {
-            // insert? or replace? 
-            return await this.insertThreadsToDB(newThreads);
-        }
-        */
-
-    }
-
-    async getAnnouncements(): Promise<string> {
+    async deleteThreadsFromDB(numberOfExtraThreads) {
         try {
-            const threads: AnnouncementDto[] = await this.getThreadsFromNexon();
-            let message = '';
-            for(let i=0;i<threads.length;i++) {
-                message = message.concat(`[신규 공지사항]\n${threads[i].title}\n링크: ${threads[i].url}\n\n`);
-            }
-            return message;
+            const sql = `DELETE FROM Announcements ORDER BY threadId LIMIT ?;`;
+            const values = [ numberOfExtraThreads ];
+            const res = await this.repositoryInstance.executeQuery(sql, values);
         } catch(err) {
             throw new Error(err);
         }
     }
 
-    async getNewAnnouncement(): Promise<AnnouncementDto[]> {
-        let new_announcement = `https://forum.nexon.com/maplestorym/board_view?board=1211&thread=`;
-        const threads: AnnouncementDto[] = await this.getThreadsFromNexon();
-        console.log('fff:', threads);
-        // const { threadIds, titles } = await this.getThreadsFromNexon();
-        /*
-        for(let i=0;i<threadIds.length;i++) {
-            console.log(`${threads[i].threadId}: ${threads[i].title}`);
+    async updateThreads(): Promise<AnnouncementDto[]> {
+        const threadsFromNexon: AnnouncementDto[] = await this.getThreadsFromNexon();
+        let threadsFromDB: AnnouncementDto[] = await this.getThreadsFromDB();
+
+        let newThreads: AnnouncementDto[] = this.getNewThreads(threadsFromNexon, threadsFromDB);
+        if(newThreads.length) {
+            const numberOfExtraThreads = (threadsFromDB.length+newThreads.length) - threadsFromNexon.length;
+            if(numberOfExtraThreads) 
+                await this.deleteThreadsFromDB(numberOfExtraThreads); 
+            await this.insertThreadsToDB(newThreads);
         }
-        new_announcement = new_announcement.concat(threadIds[0]);
-        console.log('url:', new_announcement);
-        return new_announcement;
-        */
-        return threads;
+        return newThreads;
+    }
+
+    async notifyNewUpdates() {
+        const newThreads: AnnouncementDto[] = await this.updateThreads();
+        if(newThreads.length===0) {
+            return undefined;
+        }
+        let chatBotMessage = '[신규 공지사항]\n\n';
+        for(let i=0;i<newThreads.length;i++) {
+            chatBotMessage = chatBotMessage.concat(`━━━━━༻❁༺━━━━━\n${newThreads[i].title}\n [링크]: ${newThreads[i].url}\n\n`);
+        }
+        return chatBotMessage;
+    }
+
+    async updateAnnouncements() {
+        const newThreads: AnnouncementDto[] = await this.updateThreads();
+        if(newThreads.length) {
+            return `공지사항을 업데이트 했어요!`;
+        } else {
+            return `새로운 공지사항이 없어요!`;
+        }
+    }
+
+    async getAnnouncements(): Promise<string> {
+        try {
+            const threads: AnnouncementDto[] = await this.getThreadsFromDB();
+            let message = '';
+            for(let i=0;i<threads.length;i++) {
+                message = message.concat(`[신규 공지사항]\n\n${threads[i].title}\n링크: ${threads[i].url}\n\n`);
+            }
+            return message;
+        } catch(err) {
+            throw new Error(err);
+        }
     }
 
     async getAllList() {
@@ -320,7 +331,6 @@ export class ChatService {
     // 학습
     async teachLesson(title, lesson) {
         try {
-            console.log('teachLesson:', title, lesson);
             const sql = `INSERT INTO Lessons (title, lesson) VALUES (?, ?);`;
             const values = [ title, lesson ];
             const res = await this.repositoryInstance.executeQuery(sql, values);
@@ -370,7 +380,7 @@ export class ChatService {
         return organizedTitles;
     }
 
-    getTutorial(){
+    getHelp(){
         return `• 명단 보기 
 !${this.Command.LIST}  
 !${this.Command.LIST} 3팀\n 
@@ -392,6 +402,10 @@ export class ChatService {
 !${this.Command.DELETE} 학습_제목\n
 • 학습 목록 출력
 !${this.Command.LESSON_LIST}\n
+• 공식 홈페이지 공지사항 확인
+!${this.Command.ANNOUNCEMENT}\n
+• 공식 홈페이지 공지사항 업데이트
+!${this.Command.UPDATE_ANNOUNCEMENT}\n
 • 도움말
 !도움말`;
     }
@@ -474,7 +488,6 @@ export class ChatService {
 
     async handleChatCommand(message, userId?) {
         const isCommand = this.isCommand(message.substr(0,1));
-        await this.updateThreads();
         switch(isCommand) {
             case this.COMMAND_PREFIX['!']: {
                 // For normal chat bot commands execution.
