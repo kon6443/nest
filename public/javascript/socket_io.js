@@ -24,7 +24,6 @@ function createChatMessage(data, chatPosition) {
 
     const chatContentElement = document.getElementById('chat-content');
     chatContentElement.appendChild(chatDiv);
-    document.getElementById('chat-type').value = '';
     chatContentElement.scrollTop = chatContentElement.scrollHeight;
     return chatDiv;
 }
@@ -67,6 +66,8 @@ document.getElementById('chat-type').addEventListener('keypress', function(e) {
     }
     if(e.keyCode==13 && value!=='') {
         document.getElementById('chat-button').click();
+        document.getElementById('chat-type').value = '';
+        e.preventDefault(); // Prevents default Enter key behavior
     }
 })
 
