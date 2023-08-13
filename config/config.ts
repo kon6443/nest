@@ -10,13 +10,16 @@ export const config = {
     // MySQL DB connection
     MYSQL: {
         HOST: process.env.MYSQL_HOST,
+        PORT: Number(process.env.MYSQL_PORT), 
         USER: process.env.MYSQL_USER,
         PASSWORD: process.env.MYSQL_PASSWORD,
         DATABASE: process.env.MYSQL_DATABASE,
         ROOT_PASSWORD: process.env.MYSQL_ROOT_PASSWORD
     }, 
+
     JWT: {
         SECRET: process.env.JWT_SECRET
     }
+
 };
 

@@ -15,6 +15,7 @@ export class MySQLRepository {
         this.pool = createPool({
             connectionLimit: 10,
             host: config.MYSQL.HOST,
+            port: config.MYSQL.PORT, 
             user: config.MYSQL.USER,
             password: config.MYSQL.PASSWORD,
             database: config.MYSQL.DATABASE 
