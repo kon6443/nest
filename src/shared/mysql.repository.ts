@@ -20,6 +20,7 @@ export class MySQLRepository {
             password: config.MYSQL.PASSWORD,
             database: config.MYSQL.DATABASE 
         });
+        console.log('config:', config);
     }
 
     async executeQuery(sql: string, values?: any) {
