@@ -22,5 +22,11 @@ export class ChatController {
         return { user };
     }
 
+    @Get('rooms')
+    @Render('chat/rooms')
+    async handleGetRooms() {
+        console.log('chat/room:');
+    }
+
 }
 

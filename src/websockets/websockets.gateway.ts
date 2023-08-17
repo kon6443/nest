@@ -62,14 +62,12 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
         this.toggleAutoAnnouncement();
 
         const announcement = `${this.activeUsers.get(client.id)} has entered the chat room.`;
-        console.log(announcement);
         this.server.emit('chat', { userId: 'announcement', message: announcement} );
         this.server.emit('user-status', { activeUsers: Array.from(this.activeUsers) });
     }
 
     handleDisconnect(client: Socket) {
         const announcement = `${this.activeUsers.get(client.id)} has left the chatroom.`;
-        console.log(announcement);
         this.activeUsers.delete(client.id);
         this.server.emit('chat', { userId: 'announcement',  message: announcement} );
         this.server.emit('user-status', { activeUsers: Array.from(this.activeUsers )});

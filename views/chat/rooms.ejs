@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+    <html>
+        <head>
+            <title>nest-project</title>
+            <!-- <link rel="stylesheet" href="../public/css/styles.css"> -->
+            <link rel="stylesheet" href="../public/css/chat/styles.css">
+        </head>
+    <body>
+        <div style="margin-bottom: 3%;" class="top-menu">
+            <a href="/">Home</a>
+            <a href="/articles">Forum</a>
+            <a href="/chat">Chat</a>
+            <a href="/user">My page</a>
+        </div>
+
+        <section class="content" >
+
+            <div id="modalContainer" class="hidden">
+                <div id="modalContent">
+                    <h3>방 제목을 입력해 주세요.</h3>
+                    <input id="title-input" placeholder="방 제목을 입력해 주세요"></input>
+                    <button type="submit" onclick="submitTitle()">확인</button>
+                    <button id="modalCloseButton">취소</button>
+                </div>
+            </div>
+
+            <div class="room-manage">
+                <div class="room-create" id="room-create">
+                    <p>Create room</p>
+                </div>
+            </div>
+            <div class="rooms" id="rooms">
+                
+                <div class="room">
+                    room 1
+                </div>
+                <div class="room">
+                    room 2
+                </div>
+                
+            </div>
+
+            <div>
+                <div>
+                    <button type="button" onclick="">Create room</button>
+                </div>
+            </div>
+
+        </section>
+        
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="../public/javascript/chat/room.js"></script>
+    </body>
+</html>
+

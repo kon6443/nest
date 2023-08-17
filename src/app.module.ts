@@ -8,9 +8,10 @@ import { SharedModule } from './shared/shared.module';
 import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { WebsocketsModule } from './websockets/websockets.module';
+import { TransportModule } from './transport/transport.module';
 
 @Module({
-  imports: [ArticlesModule, UserModule, SharedModule, AuthModule, ChatModule, WebsocketsModule],
+  imports: [ArticlesModule, UserModule, SharedModule, AuthModule, ChatModule, WebsocketsModule, TransportModule],
   controllers: [AppController],
   providers: [AppService],
 })

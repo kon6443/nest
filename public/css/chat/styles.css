@@ -1,0 +1,168 @@
+body {
+    margin-top: 1%;
+    background-color: #444653;
+    font-family: Arial, sans-serif;
+    color: #fff;
+}
+
+.top-menu {
+    background-color: #333;
+    color: #fff;
+    padding: 1%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 94%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1%;
+    border-radius: 10px;
+}
+
+.top-menu a {
+    color: #fff;
+    text-decoration: none;
+    margin-right: 10px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    width: 25%
+}
+
+/* .content-section { */
+.content {
+    /** flex property enables items to be aligned along with x axis. 
+     * Each item occupies its own width length. */
+    display: flex;
+    /* justify-content property aligns the items to be in the middle horizontally.
+     */
+    justify-content: center;
+    /* align-items aligns the items to be in the middle vertically.
+     */
+    align-items: center;
+    /* flex-direction specifies the direction of the flexible items.
+     */
+    flex-direction: column;
+    background-color: #333;
+    width: 94%;
+    height: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+}
+
+/* Above this line is for default css styles. */
+
+
+.rooms {
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: 2%;
+    margin-bottom: 2%;
+    border: solid 1px white;
+    border-radius: 10px;
+    width: 60%;
+    height: 65vh;
+    overflow-y: scroll;
+}
+
+.room {
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: 1%;
+    margin-bottom: 1%;
+    border-radius: 10px;
+    text-align: center;
+    border: solid 1px white;
+    width: 90%;
+    height: 8%;
+    font-size: 120%;
+    padding: 10px;
+}
+
+.room-manage {
+    margin-top: 2%;
+    border: solid 1px white;
+    width: 60%;
+    height: 10vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 130%;
+}
+
+.room-create {
+    border: solid 1px white;
+    margin-top: 4%;
+    margin-bottom: 4%;
+    margin-left: 1%;
+    width: 25%;
+    max-height: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+
+
+#modalOpenButton, #modalCloseButton {
+    cursor: pointer;
+}
+  
+#modalContainer {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.5);
+    /* background: #333; */
+}
+  
+#modalContent {
+    position: absolute;
+    /* background-color: #ffffff; */
+    background-color: grey;
+    border-radius: 10px;
+    width: 300px;
+    height: 150px;
+    width: 20%;
+    height: 20%;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+  
+#modalContainer.hidden {
+    display: none;
+}
+
+
+#modalContainer {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.5);
+}
+  
+#modalContainer.hidden {
+    display: none;
+}
+
+/* #modalContent {
+    position: absolute;
+    background-color: #ffffff;
+    background-color: #333;
+    width: 300px;
+    height: 150px;
+    padding: 15px;
+} */

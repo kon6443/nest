@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+    <html>
+        <head>
+            <title>nest-project</title>
+            <link rel="stylesheet" href="../public/css/styles.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+        </head>
+    <body>
+        <div class="top-menu">
+            <a href="/">Home</a>
+            <a href="/articles">Forum</a>
+            <a href="/chat">Chat</a>
+            <a href="/articles">My page</a>
+        </div>
+
+        <section>
+            <table class="sign-up">
+                <tr>
+                    <td>
+                        <h1>Create an nest-project account</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input id="signUpId" placeholder="Enter ID"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input id="signUpName" placeholder="Enter name"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input id="signUpAddress" placeholder="Enter address"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input id="signUpPhoneNumber" placeholder="Enter phone number"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="password" id="signUpPassword" placeholder="Enter password"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="password" id="signUpPasswordConfirmation" placeholder="Enter password confirmation"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" onclick="createAccount()">Create Account</button>
+                    </td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <table class="sign-up">
+                <tr>
+                    <td>
+                        <h1>Sign In</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input id="signInId" placeholder="Enter ID"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="password" id="signInPassword" placeholder="Enter password"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" onclick="signIn()">Sign In</button>
+                    </td>
+                </tr>
+            </table>
+        </section>
+        <script src="../public/javascript/script.js"></script>
+    </body>
+</html>
+
