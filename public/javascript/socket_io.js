@@ -28,15 +28,18 @@ function createChatMessage(data, chatPosition) {
     return chatDiv;
 }
 
+// Receiving 'chat' event.
 socket.on('chat', function (data) {
     const chatPosition = data.id===socket.id ? 'right' : 'left';
     createChatMessage(data, chatPosition);
 });
 
+// Receiving 'chat-bot' event.
 socket.on('chat-bot', function (data) {
     createChatMessage(data, 'left');
 });
 
+// Receiving 'user-status' event.
 socket.on('user-status', function (data) {
     const userList = document.getElementById('chat-user-list');
     userList.innerHTML = '';

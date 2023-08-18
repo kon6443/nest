@@ -18,12 +18,6 @@ socket.on('available-rooms', function (data) {
     }
 });
 
-document.getElementById('room-create').addEventListener('click', () => {
-    const roomTitle = ''
-    socket.emit('room-create', roomName);
-});
-
-
 const modalOpenButton = document.getElementById('room-create');
 const modalCloseButton = document.getElementById('modalCloseButton');
 const modal = document.getElementById('modalContainer');
@@ -39,6 +33,7 @@ modalCloseButton.addEventListener('click', () => {
 const modalContainer = document.getElementById('modalContainer');
 const titleInput = document.getElementById('title-input');
 const submitButton = document.querySelector('#modalContent button[type="submit"]');
+// By hitting the enter key, it triggers the submitTitle() function below.
 titleInput.addEventListener('keydown', (event) => {
     if(event.key === 'Enter' && !modalContainer.classList.contains('hidden')) {
         event.preventDefault(); // Prevents the default Enter key behavior
@@ -47,8 +42,31 @@ titleInput.addEventListener('keydown', (event) => {
 });
 
 function submitTitle() {
-    const title = titleInput.value;
-    console.log('title:', title);
+    const roomName = titleInput.value;
     titleInput.value = '';
+    socket.emit('room-create-request', roomName);
     modal.classList.add('hidden');
 }
+
+socket.on('rooms', function (data) {
+    const rooms = document.getElementById('rooms');
+    rooms.innerHTML = '';
+    for(let i=0;i<data.length;i++) {
+        let room = document.createElement('div');
+        room.innerHTML = `${data[i]}`;
+        room.classList.add('room');
+        room.addEventListener('click', () => {
+            window.location.href = `/chat/${data[i]}`;
+        });
+        rooms.appendChild(room);
+    }
+});
+
+socket.on('room-create-response', function(data) {
+    console.log('response', data);
+    if(data.status) {
+        window.location.href = `/chat/${data.roomName}`;
+    } else {
+        window.alert(data);
+    }
+}); 

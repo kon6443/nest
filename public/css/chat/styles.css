@@ -78,6 +78,7 @@ body {
     height: 8%;
     font-size: 120%;
     padding: 10px;
+    cursor: pointer;
 }
 
 .room-manage {

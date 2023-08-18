@@ -1,4 +1,4 @@
-import { Controller, Req, Get, Render, UseGuards } from '@nestjs/common';
+import { Controller, Req, Get, Param, Render, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { ChatService } from './chat.service';
@@ -15,17 +15,18 @@ export class ChatController {
     ) {}
 
     @Get()
-    @UseGuards(AuthGuard)
-    @Render('chat/chat')
-    async handleGetMain(@Req() req: Request) {
-        const user = await this.authService.verifyToken(req.cookies.jwt);
-        return { user };
-    }
-
-    @Get('rooms')
     @Render('chat/rooms')
     async handleGetRooms() {
-        console.log('chat/room:');
+    }
+
+
+    @Get('/:roomName')
+    @UseGuards(AuthGuard)
+    @Render('chat/chat')
+    async handleGetMain(@Req() req: Request, @Param('roomName') roomName) {
+        console.log('roomName:', roomName);
+        const user = await this.authService.verifyToken(req.cookies.jwt);
+        return { user };
     }
 
 }

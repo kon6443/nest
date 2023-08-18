@@ -10,7 +10,7 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
     server: Server;
     private activeUsers = new Map<string, string>(); // socketId -> userId
     private intervalId = undefined;
-    private activeUserLogged = false;
+    private rooms: Set<string> = new Set();
     constructor( 
         private readonly chatService: ChatService, 
         private readonly authService: AuthService, 
@@ -51,6 +51,7 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
     
     // This is when a new user enters a chat room. 
     async handleConnection(client: Socket) {
+        this.server.emit('rooms', Array.from(this.rooms));
         const jwtCookie = this.extractJwtFromCookies(client);
         if(!jwtCookie) {
             return;
@@ -81,6 +82,17 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
         const chatBotMessage = await this.chatService.handleChatCommand(payload.message, this.activeUsers.get(client.id));
         if(chatBotMessage) {
             this.server.emit('chat-bot', { userId: 'Chat bot', message: chatBotMessage });
+        }
+    }
+
+    @SubscribeMessage('room-create-request')
+    async handleRoomCreate(client: Socket, roomName: string) {
+        if(this.rooms.has(roomName)) {
+            this.server.emit('room-create-response', { status: false, message: `${roomName}은 이미 존재하는 방 제목 입니다.` } );
+        } else {
+            client.join('roomName');
+            this.rooms.add(roomName);
+            this.server.emit('room-create-response', { status: true, roomName: roomName} );
         }
     }
 
