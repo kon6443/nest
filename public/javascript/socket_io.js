@@ -4,6 +4,14 @@ let socket = io.connect('/chat', {
     transports: ['websocket'],
 });
 
+// socket.emit('user-status', 'asdf');
+socket.emit('user-status');
+
+socket.on('user-status-response', function (data) {
+    console.log('data:', data);
+});
+
+
 function createChatMessage(data, chatPosition) {
     // Creating a name div
     const userNameDiv = document.createElement('div');

@@ -30,6 +30,8 @@ export class ChatService {
     private commandsMaxLength = 0;
     private readonly official_announcement_url = `https://forum.nexon.com/api/v1/board/1211/threads?alias=maplestorym&pageNo=1&paginationType=PAGING&pageSize=15&blockSize=5&_=1690967856061`;
     private readonly board_path = `https://forum.nexon.com/maplestorym/board_view?board=1211&thread=`;
+    private rooms: Set<string> = new Set();
+    private activeUsers: Map<string, string>
 
     constructor( 
         private readonly repositoryInstance: MySQLRepository, 
@@ -56,6 +58,25 @@ export class ChatService {
         for(const key in commands) {
             this.commandsMaxLength = Math.max(this.commandsMaxLength, commands[key].length);
         }
+    }
+
+    createRoom(roomName) {
+        let message = '';
+        if(this.rooms.has(roomName)) {
+            message = `${roomName} already exists.`;
+        } else {
+            this.rooms.add(roomName);
+            message = `${roomName} has been created.`;
+        }
+        return message;
+    }
+
+    async isRoomValid(roomName) {
+        return await !this.rooms.has(roomName) ? true : false;
+    }
+
+    getRoomStatus() {
+        return this.rooms;
     }
 
     private unknownCommand(cmdObject) {

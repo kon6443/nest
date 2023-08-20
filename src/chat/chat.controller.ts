@@ -1,4 +1,4 @@
-import { Controller, Req, Get, Param, Render, UseGuards } from '@nestjs/common';
+import { Controller, Req, Get, Post, Param, Render, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { ChatService } from './chat.service';
@@ -19,14 +19,26 @@ export class ChatController {
     async handleGetRooms() {
     }
 
+    @Post('/:roomName')
+    handlePostRoom(@Param('roomName') roomName): { message: string } {
+        const message = this.chatService.createRoom(roomName);
+        return { message: message };
+    }
 
     @Get('/:roomName')
     @UseGuards(AuthGuard)
     @Render('chat/chat')
     async handleGetMain(@Req() req: Request, @Param('roomName') roomName) {
-        console.log('roomName:', roomName);
+        console.log('handleGetMain:', roomName);
         const user = await this.authService.verifyToken(req.cookies.jwt);
-        return { user };
+        const isRoomValid = await this.chatService.isRoomValid(roomName);
+        console.log(this.chatService.getRoomStatus);
+        if(!isRoomValid) {
+            // Handle regarding process.
+            console.log('no romm');
+            return { message: `${roomName} has not been created.`};
+        }
+        return { user, roomName };
     }
 
 }

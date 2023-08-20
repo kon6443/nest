@@ -4,7 +4,10 @@ let socket = io.connect('/chat', {
     transports: ['websocket'],
 });
 
-socket.on('available-rooms', function (data) {
+/*
+socket.emit('');
+socket.on('room-status', function (data) {
+    console.log('available-rooms');
     const rooms = document.getElementById('rooms');
     for(let i=0;i<data['rooms'].length;i++) {
         let room = document.createElement('div');
@@ -17,6 +20,7 @@ socket.on('available-rooms', function (data) {
         userList.appendChild(user);
     }
 });
+*/
 
 const modalOpenButton = document.getElementById('room-create');
 const modalCloseButton = document.getElementById('modalCloseButton');
@@ -44,11 +48,26 @@ titleInput.addEventListener('keydown', (event) => {
 function submitTitle() {
     const roomName = titleInput.value;
     titleInput.value = '';
-    socket.emit('room-create-request', roomName);
+    // socket.emit('room-create-request', roomName);
+    const url = `/chat/${roomName}`;
     modal.classList.add('hidden');
+    console.log(`${roomName} has been sent.`);
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }, 
+    })
+    .then(res => res.json())
+    .then(data => {
+        socket.emit('room-status');
+        alert(data.message);
+    });
 }
 
-socket.on('rooms', function (data) {
+socket.emit('room-status');
+// socket.on('rooms', function (data) {
+socket.on('room-status', function (data) {
     const rooms = document.getElementById('rooms');
     rooms.innerHTML = '';
     for(let i=0;i<data.length;i++) {

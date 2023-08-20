@@ -8,7 +8,7 @@ import { AuthService } from '../auth/auth.service';
 export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     server: Server;
-    private activeUsers = new Map<string, string>(); // socketId -> userId
+    private activeUsers = new Map<string, string>(); //  <socketId -> userId> 
     private intervalId = undefined;
     private rooms: Set<string> = new Set();
     constructor( 
@@ -51,7 +51,7 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
     
     // This is when a new user enters a chat room. 
     async handleConnection(client: Socket) {
-        this.server.emit('rooms', Array.from(this.rooms));
+        // this.server.emit('rooms', Array.from(this.rooms));
         const jwtCookie = this.extractJwtFromCookies(client);
         if(!jwtCookie) {
             return;
@@ -95,6 +95,18 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
             this.server.emit('room-create-response', { status: true, roomName: roomName} );
         }
     }
+
+    @SubscribeMessage('user-status')
+    async handleUserStatus(client: Socket, roomName: string) {
+        console.log('handleUserStatus');
+    }
+
+    @SubscribeMessage('room-status')
+    async handleRoomStatus() {
+        console.log('roomStatus:', Array.from(this.rooms));
+        this.server.emit('room-status', Array.from(this.chatService.getRoomStatus()));
+    }
+
 
 }
 
