@@ -103,7 +103,6 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
 
     @SubscribeMessage('room-status')
     async handleRoomStatus() {
-        console.log('roomStatus:', Array.from(this.rooms));
         this.server.emit('room-status', Array.from(this.chatService.getRoomStatus()));
     }
 

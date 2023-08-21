@@ -60,19 +60,19 @@ export class ChatService {
         }
     }
 
+
     createRoom(roomName) {
-        let message = '';
         if(this.rooms.has(roomName)) {
-            message = `${roomName} already exists.`;
+            return true; 
+            // throw new Error(`${roomName} already exists.`);
         } else {
             this.rooms.add(roomName);
-            message = `${roomName} has been created.`;
+            return false;
         }
-        return message;
     }
 
-    async isRoomValid(roomName) {
-        return await !this.rooms.has(roomName) ? true : false;
+    isRoomValid(roomName) {
+        return this.rooms.has(roomName) ? true : false;
     }
 
     getRoomStatus() {

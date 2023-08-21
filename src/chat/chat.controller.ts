@@ -1,4 +1,4 @@
-import { Controller, Req, Get, Post, Param, Render, UseGuards } from '@nestjs/common';
+import { Controller, Req, Res, Get, Post, Param, Render, UseGuards, HttpStatus, HttpException } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { ChatService } from './chat.service';
@@ -14,30 +14,32 @@ export class ChatController {
         private readonly chatService: ChatService
     ) {}
 
+    // Handles displaying a main page, including all created rooms.
     @Get()
     @Render('chat/rooms')
-    async handleGetRooms() {
+    async handleGetChatMain() {
     }
 
+    // Handles creating a new room.
     @Post('/:roomName')
+    @UseGuards(AuthGuard)
     handlePostRoom(@Param('roomName') roomName): { message: string } {
-        const message = this.chatService.createRoom(roomName);
-        return { message: message };
+        const errorFlag = this.chatService.createRoom(roomName);
+        if(errorFlag) 
+            throw new HttpException({message: `${roomName} already exists.`}, HttpStatus.CONFLICT);
+        return { message: `${roomName} has been created.` };
     }
 
+    // Handles displaying a created chat room.
     @Get('/:roomName')
     @UseGuards(AuthGuard)
     @Render('chat/chat')
-    async handleGetMain(@Req() req: Request, @Param('roomName') roomName) {
-        console.log('handleGetMain:', roomName);
-        const user = await this.authService.verifyToken(req.cookies.jwt);
-        const isRoomValid = await this.chatService.isRoomValid(roomName);
-        console.log(this.chatService.getRoomStatus);
+    async handleGetMain(@Req() req: Request, @Param('roomName') roomName, @Res() res: Response) {
+        const isRoomValid = this.chatService.isRoomValid(roomName);
         if(!isRoomValid) {
-            // Handle regarding process.
-            console.log('no romm');
-            return { message: `${roomName} has not been created.`};
+            return res.status(HttpStatus.NOT_FOUND).json({ error: `${roomName} has not been created.` });
         }
+        const user = await this.authService.verifyToken(req.cookies.jwt);
         return { user, roomName };
     }
 
