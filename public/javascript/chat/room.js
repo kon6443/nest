@@ -47,26 +47,35 @@ titleInput.addEventListener('keydown', (event) => {
 
 function submitTitle() {
     const roomName = titleInput.value;
+    if(!roomName) {
+        return;
+    }
     titleInput.value = '';
     // socket.emit('room-create-request', roomName);
     const url = `/chat/${roomName}`;
     modal.classList.add('hidden');
-    console.log(`${roomName} has been sent.`);
     fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         }, 
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(res => {
+        if(res.ok) {
+            return res.json();
+        } else {
+            return res.json().then(data => Promise.reject(data));
+        }
+    })
+    .then(() => {
         socket.emit('room-status');
-        alert(data.message);
+    })
+    .catch(error => {
+        alert(error.message);
     });
 }
 
 socket.emit('room-status');
-// socket.on('rooms', function (data) {
 socket.on('room-status', function (data) {
     const rooms = document.getElementById('rooms');
     rooms.innerHTML = '';
@@ -82,7 +91,6 @@ socket.on('room-status', function (data) {
 });
 
 socket.on('room-create-response', function(data) {
-    console.log('response', data);
     if(data.status) {
         window.location.href = `/chat/${data.roomName}`;
     } else {
