@@ -18,6 +18,8 @@ export class ChatController {
     @Get()
     @Render('chat/rooms')
     async handleGetChatMain() {
+        // const rooms = this.chatService.getRoomStatus();
+        // console.log('room.has?',rooms.has('a'));
     }
 
     // Handles creating a new room.
@@ -39,6 +41,7 @@ export class ChatController {
         if(!isRoomValid) {
             return res.status(HttpStatus.NOT_FOUND).json({ error: `${roomName} has not been created.` });
         }
+        console.log('valid room');
         const user = await this.authService.verifyToken(req.cookies.jwt);
         return { user, roomName };
     }

@@ -76,8 +76,12 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
     }
 
     @SubscribeMessage('chat')
-    async handleMessage(client: Socket, payload: { message: string }) {
-        this.server.emit('chat', { userId: this.activeUsers.get(client.id), id: client.id, message: payload.message });
+    async handleMessage(client: Socket, payload: { message: string, roomName: string }) {
+        console.log('payload:', payload);
+        console.log('roomstatus:', this.chatService.getRoomStatus());
+        // client.broadcast.to(payload.roomName).emit('chat', { userId: this.activeUsers.get(client.id), id: client.id, message: payload.message });
+        this.server.to(payload.roomName).emit('chat', { userId: this.activeUsers.get(client.id), id: client.id, message: payload.message });
+        // this.server.emit('chat', { userId: this.activeUsers.get(client.id), id: client.id, message: payload.message });
         
         const chatBotMessage = await this.chatService.handleChatCommand(payload.message, this.activeUsers.get(client.id));
         if(chatBotMessage) {
@@ -85,16 +89,19 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
         }
     }
 
+    /*
     @SubscribeMessage('room-create-request')
     async handleRoomCreate(client: Socket, roomName: string) {
+        console.log('room-create-req');
         if(this.rooms.has(roomName)) {
             this.server.emit('room-create-response', { status: false, message: `${roomName}은 이미 존재하는 방 제목 입니다.` } );
         } else {
-            client.join('roomName');
+            client.join(roomName);
             this.rooms.add(roomName);
             this.server.emit('room-create-response', { status: true, roomName: roomName} );
         }
     }
+    */
 
     @SubscribeMessage('user-status')
     async handleUserStatus(client: Socket, roomName: string) {
@@ -103,7 +110,8 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
 
     @SubscribeMessage('room-status')
     async handleRoomStatus() {
-        this.server.emit('room-status', Array.from(this.chatService.getRoomStatus()));
+        // this.server.emit('room-status', Array.from(this.chatService.getRoomStatus()));
+        this.server.emit('room-status', this.chatService.getRoomStatus());
     }
 
 

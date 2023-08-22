@@ -30,7 +30,8 @@ export class ChatService {
     private commandsMaxLength = 0;
     private readonly official_announcement_url = `https://forum.nexon.com/api/v1/board/1211/threads?alias=maplestorym&pageNo=1&paginationType=PAGING&pageSize=15&blockSize=5&_=1690967856061`;
     private readonly board_path = `https://forum.nexon.com/maplestorym/board_view?board=1211&thread=`;
-    private rooms: Set<string> = new Set();
+    // private rooms: Set<string> = new Set();
+    private rooms: Map<string, string[]> = new Map(); // roomName -> participants 
     private activeUsers: Map<string, string>
 
     constructor( 
@@ -60,23 +61,27 @@ export class ChatService {
         }
     }
 
-
     createRoom(roomName) {
-        if(this.rooms.has(roomName)) {
-            return true; 
-            // throw new Error(`${roomName} already exists.`);
+        const room = this.rooms.get(roomName);
+        if(room && room.length>0) {
+            return true;
         } else {
-            this.rooms.add(roomName);
+            this.rooms.set(roomName, new Array());
             return false;
         }
     }
 
     isRoomValid(roomName) {
-        return this.rooms.has(roomName) ? true : false;
+        console.log(this.rooms.get(roomName));
+        return this.rooms.get(roomName) ? true : false;
     }
 
     getRoomStatus() {
-        return this.rooms;
+        let rooms = [];
+        for(const roomName of this.rooms.keys()) {
+            rooms.push(roomName);
+        }
+        return rooms;
     }
 
     private unknownCommand(cmdObject) {

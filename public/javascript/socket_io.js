@@ -59,14 +59,16 @@ socket.on('user-status', function (data) {
     }
 });
 
-function sendMsg(userId) {
+function sendMsg(userId, roomName) {
 	const message = document.getElementById('chat-type').value;
     const payload = {
         userId,
-        message
+        message,
+        roomName
     };
     // socket.emit() method sends a message to the server.
     socket.emit('chat', payload);
+    // socket.to(roomName).emit('chat', payload);
 }
 
 document.getElementById('chat-type').addEventListener('keypress', function(e) {

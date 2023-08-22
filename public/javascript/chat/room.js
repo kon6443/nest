@@ -51,7 +51,6 @@ function submitTitle() {
         return;
     }
     titleInput.value = '';
-    // socket.emit('room-create-request', roomName);
     const url = `/chat/${roomName}`;
     modal.classList.add('hidden');
     fetch(url, {
@@ -68,7 +67,7 @@ function submitTitle() {
         }
     })
     .then(() => {
-        socket.emit('room-status');
+        window.location.href = url;
     })
     .catch(error => {
         alert(error.message);
@@ -91,6 +90,7 @@ socket.on('room-status', function (data) {
 });
 
 socket.on('room-create-response', function(data) {
+    console.log('hey');
     if(data.status) {
         window.location.href = `/chat/${data.roomName}`;
     } else {
