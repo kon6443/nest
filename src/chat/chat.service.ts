@@ -32,7 +32,7 @@ export class ChatService {
     private readonly board_path = `https://forum.nexon.com/maplestorym/board_view?board=1211&thread=`;
     // private rooms: Set<string> = new Set();
     private rooms: Map<string, string[]> = new Map(); // roomName -> participants 
-    private activeUsers: Map<string, string>
+    private activeUsers = new Map<string, string>(); //  <socketId -> userId> 
 
     constructor( 
         private readonly repositoryInstance: MySQLRepository, 
@@ -61,6 +61,14 @@ export class ChatService {
         }
     }
 
+    setUser(socketId, userId) {
+        this.activeUsers.set(socketId, userId);
+    }
+
+    getUser(socketId) {
+        return this.activeUsers.get(socketId);
+    }
+
     createRoom(roomName) {
         const room = this.rooms.get(roomName);
         if(room && room.length>0) {
@@ -72,7 +80,6 @@ export class ChatService {
     }
 
     isRoomValid(roomName) {
-        console.log(this.rooms.get(roomName));
         return this.rooms.get(roomName) ? true : false;
     }
 
@@ -82,6 +89,28 @@ export class ChatService {
             rooms.push(roomName);
         }
         return rooms;
+    }
+
+    enterRoom(roomName, clientId) {
+        // let room = this.rooms.get(roomName);
+        // room.push(clientId);
+        // return room;
+        this.rooms.get(roomName).push(clientId);
+        return this.rooms.get(roomName);
+    }
+
+    leaveRoom(userId) {
+        for(const roomName of this.rooms.keys()) {
+            for(let i=0;i<this.rooms.get(roomName).length;i++) {
+                if(this.rooms.get(roomName)[i] === userId) {
+                    this.rooms.get(roomName).splice(i, 1);
+                    if(this.rooms.get(roomName).length===0) {
+                        this.rooms.delete(roomName);
+                        return ;
+                    }
+                }
+            }
+        }
     }
 
     private unknownCommand(cmdObject) {

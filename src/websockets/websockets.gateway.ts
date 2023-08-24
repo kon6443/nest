@@ -51,25 +51,32 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
     
     // This is when a new user enters a chat room. 
     async handleConnection(client: Socket) {
-        // this.server.emit('rooms', Array.from(this.rooms));
+        // Chekcs if a user is valid or not.
+        /*
         const jwtCookie = this.extractJwtFromCookies(client);
         if(!jwtCookie) {
             return;
         }
 
         const {id: userId} = await this.authService.verifyToken(jwtCookie);
+        console.log('userId:', userId);
         this.activeUsers.set(client.id, userId);
 
         this.toggleAutoAnnouncement();
 
         const announcement = `${this.activeUsers.get(client.id)} has entered the chat room.`;
         this.server.emit('chat', { userId: 'announcement', message: announcement} );
-        this.server.emit('user-status', { activeUsers: Array.from(this.activeUsers) });
+        */
+        // this.server.emit('user-status', { activeUsers: Array.from(this.activeUsers) });
     }
 
     handleDisconnect(client: Socket) {
-        const announcement = `${this.activeUsers.get(client.id)} has left the chatroom.`;
-        this.activeUsers.delete(client.id);
+        console.log('check');
+        const userId = this.chatService.getUser(client.id);
+        this.chatService.leaveRoom(userId);
+        const announcement = `${userId} has left the chatroom.`;
+        this.chatService.leaveRoom(userId);
+        // this.activeUsers.delete(client.id);
         this.server.emit('chat', { userId: 'announcement',  message: announcement} );
         this.server.emit('user-status', { activeUsers: Array.from(this.activeUsers )});
         this.toggleAutoAnnouncement();
@@ -89,28 +96,42 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
         }
     }
 
-    /*
-    @SubscribeMessage('room-create-request')
-    async handleRoomCreate(client: Socket, roomName: string) {
-        console.log('room-create-req');
-        if(this.rooms.has(roomName)) {
-            this.server.emit('room-create-response', { status: false, message: `${roomName}은 이미 존재하는 방 제목 입니다.` } );
-        } else {
-            client.join(roomName);
-            this.rooms.add(roomName);
-            this.server.emit('room-create-response', { status: true, roomName: roomName} );
-        }
-    }
-    */
+    @SubscribeMessage('user-enter')
+    async handleUserEnter(client: Socket, roomName: string) {
+        console.log('user-enter');
 
-    @SubscribeMessage('user-status')
-    async handleUserStatus(client: Socket, roomName: string) {
-        console.log('handleUserStatus');
+        // Chekcs if the user is valid or not.
+        const jwtCookie = this.extractJwtFromCookies(client);
+        if(!jwtCookie) return;
+
+        if(!this.chatService.isRoomValid(roomName)) {
+            // Handle when there is no valid matching room.
+        }
+
+        // Checks if the room is valid and if so, enter the room.
+        // if(this.chatService.isRoomValid(roomName)) {
+        //     const userStatus = this.chatService.enterRoom(roomName, client.id);
+        //     console.log(userStatus);
+        //     this.server.emit('user-status', { activeUsers: userStatus});
+        // }
+
+        const {id: userId} = await this.authService.verifyToken(jwtCookie);
+        this.chatService.setUser(client.id, userId);
+        // this.activeUsers.set(client.id, userId);
+
+        const activeUsers = this.chatService.enterRoom(roomName, this.chatService.getUser(client.id));
+        console.log(activeUsers);
+        this.server.emit('user-status', { activeUsers: activeUsers});
+
+        this.toggleAutoAnnouncement();
+
+        const announcement = `${this.chatService.getUser(client.id)} has entered the chat room.`;
+        this.server.emit('chat', { userId: 'announcement', message: announcement} );
+
     }
 
     @SubscribeMessage('room-status')
     async handleRoomStatus() {
-        // this.server.emit('room-status', Array.from(this.chatService.getRoomStatus()));
         this.server.emit('room-status', this.chatService.getRoomStatus());
     }
 
