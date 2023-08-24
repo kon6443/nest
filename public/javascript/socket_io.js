@@ -5,11 +5,14 @@ let socket = io.connect('/chat', {
 });
 
 // socket.emit('user-status', 'asdf');
-socket.emit('user-status');
+const roomName = document.getElementById('roomName').textContent;
+socket.emit('user-enter', roomName);
 
+/*
 socket.on('user-status-response', function (data) {
     console.log('data:', data);
 });
+*/
 
 
 function createChatMessage(data, chatPosition) {
@@ -53,7 +56,7 @@ socket.on('user-status', function (data) {
     userList.innerHTML = '';
     for(let i=0;i<data['activeUsers'].length;i++) {
         let user = document.createElement('div');
-        user.innerHTML = `🟢 ${data['activeUsers'][i][1]}`;
+        user.innerHTML = `🟢 ${data['activeUsers'][i]}`;
         user.classList.add('chat-user');
         userList.appendChild(user);
     }
